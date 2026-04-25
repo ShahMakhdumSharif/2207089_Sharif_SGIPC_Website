@@ -1,0 +1,325 @@
+/* Renamed from committee-cards.css */
+:root{
+  --bg:#ffffff;
+  --surface:#f9f2fd;
+  --accent:#8b2ead;
+  --accent-strong:#742493;
+  --muted:#6e4b84;
+  --stroke:#decaec;
+  --max-width:1100px;
+  font-family: "Space Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  color:#331346;
+}
+
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  min-height:100vh;
+  /* page grid: header / content / footer */
+  display:grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+/* Copy exact header/footer styles from styles.css to ensure pixel parity with index.html */
+.site-header,
+main {
+  width: min(100% - 2rem, var(--max-width));
+  margin-inline: auto;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 0;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.85);
+  border-bottom: 1px solid rgba(222, 202, 236, 0.65);
+  z-index: 10;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-logo {
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+}
+
+.brand-text h1 {
+  font-size: clamp(1.45rem, 3vw, 2.15rem);
+  line-height: 1.1;
+}
+
+.brand-subtitle {
+  margin-top: 0.2rem;
+  font-size: clamp(0.84rem, 1.45vw, 1rem);
+  font-family: "IBM Plex Mono", monospace;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.site-nav {
+  display: flex;
+  gap: 0.85rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.site-nav a {
+  text-decoration: none;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: color 0.25s ease;
+}
+
+.site-nav a:hover {
+  color: var(--accent-strong);
+}
+
+.menu-btn {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--stroke);
+  border-radius: 0.5rem;
+  width: 42px;
+  height: 38px;
+  padding: 0.4rem;
+  cursor: pointer;
+}
+
+.menu-btn span {
+  display: block;
+  height: 2px;
+  background: var(--accent-strong);
+  margin: 0.45rem 0;
+}
+
+
+/* Explicitly place header / container / footer into the grid rows */
+.site-header{ grid-row: 1; }
+.container{ grid-row: 2; }
+.site-footer{ grid-row: 3; }
+
+.container{
+  /* match the site's header/footer inner width (same rule as styles.css) */
+  width: min(100% - 2rem, var(--max-width));
+  margin-inline: auto;
+  padding: 2rem 0 4rem;
+}
+
+.intro{
+  color:var(--muted);
+  margin:0.4rem 0 1.1rem;
+  font-size:0.98rem;
+}
+
+.cards{
+  display:grid;
+  gap:1rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+/* card */
+.card{
+  background: linear-gradient(160deg,#ffffff 0%, var(--surface) 100%);
+  border:1px solid var(--stroke);
+  border-radius:10px;
+  padding:0.8rem;
+  box-shadow:0 10px 20px rgba(98,28,126,0.06);
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:0.6rem;
+}
+
+/* photo square */
+.photo-wrap{
+  width:100%;
+  aspect-ratio:1/1;
+  overflow:hidden;
+  border-radius:8px;
+  background:#f0edf8;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+}
+
+.photo-wrap img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.initials{
+  display:none;
+  width:100%;
+  height:100%;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  font-size:1.15rem;
+  color:#fff;
+  background:linear-gradient(135deg,var(--accent-strong),var(--accent));
+}
+
+/* meta */
+.meta{
+  padding:0 0.1rem;
+  color:var(--muted);
+  font-size:0.95rem;
+}
+
+.meta .name{
+  font-weight:700;
+  color:var(--accent);
+  margin-bottom:0.15rem;
+}
+
+.meta .line{
+  margin:0.08rem 0;
+}
+
+.photo-filename {
+  /* hidden by default — removes the visible filename from each card */
+  display: none;
+}
+
+/* If you want to show designations (President, VP etc.) above a card, add
+   <div class="designation">President</div> and use this class. */
+.designation{
+  font-size:0.82rem;
+  color:var(--accent-strong);
+  font-weight:700;
+  margin-bottom:0.25rem;
+}
+
+/* Grouping layout for designation sections */
+.designation-group{
+  margin:1.6rem 0;
+}
+.cards > .designation-group,
+.designation-group{
+  /* force designation groups to occupy the full width of the cards grid */
+  grid-column: 1 / -1;
+  width: 100%;
+}
+.designation-group h2{
+  margin:0 0 0.6rem 0;
+  font-size:1rem;
+  color:var(--accent-strong);
+  border-left:3px solid var(--accent);
+  padding-left:0.6rem;
+}
+.designation-grid{
+  display:flex;
+  flex-wrap:wrap;
+  gap:1rem;
+}
+
+/* Each person is a horizontal tile: photo left, details right */
+.designation-grid .card{
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  gap:1rem;
+  width: calc(33.333% - 0.67rem);
+  min-width:240px;
+  padding:0.6rem;
+  box-sizing:border-box;
+}
+
+.designation-grid .card .photo-wrap{
+  width:120px;
+  height:120px;
+  flex:0 0 120px;
+  aspect-ratio:1/1;
+}
+
+.designation-grid .card .meta{
+  padding:0;
+  flex:1 1 auto;
+}
+
+/* Tablet: two columns */
+@media (max-width:900px){
+  .designation-grid .card{ width: calc(50% - 0.5rem); min-width:200px; }
+}
+
+/* Small screens: single column, compact photo */
+@media (max-width:600px){
+  .designation-grid .card{ width:100%; }
+  .designation-grid .card .photo-wrap{ width:96px; height:96px; flex:0 0 96px; }
+}
+
+/* small screens */
+@media (max-width:480px){
+  .cards{ grid-template-columns: repeat(2, 1fr); gap:0.6rem; }
+  .card{ padding:0.6rem; }
+  .meta{ font-size:0.9rem; }
+}
+
+/* focus styles for accessibility */
+.card:focus-within{
+  outline:3px solid rgba(139,46,173,0.12);
+  box-shadow:0 14px 28px rgba(98,28,126,0.08);
+}
+
+/* Footer styles copied from styles.css to match index.html */
+.site-footer {
+  margin-top: 2rem;
+  padding: 1.2rem 0 1.8rem;
+  background: #111111;
+  border-top: 1px solid #2a2a2a;
+}
+
+.footer-inner {
+  width: min(100% - 2rem, var(--max-width));
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem 1.2rem;
+}
+
+.footer-nav a {
+  text-decoration: none;
+  color: #e8e8e8;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.footer-nav a:hover {
+  color: #ffffff;
+}
+
+.footer-address,
+.footer-copy {
+  color: #b8b8b8;
+  margin: 0;
+}
+
+.footer-copy {
+  font-size: 0.92rem;
+}
