@@ -49,6 +49,7 @@
         <a href="#events">Events</a>
         <a href="current-committee.html">Current Committee</a>
         <a href="alumni.html">Alumni</a>
+        <a href="login.html">Login</a>
         <a href="#join">Join</a>
       </nav>
     </header>
@@ -151,30 +152,30 @@
         <div class="event-groups">
           <article class="event-box">
             <p class="section-kicker event-kicker">Upcoming Events</p>
-            <p class="event-meta">
-              NDU IUPC Team Selection Contest 02 | Thursday, April 23, 2026 |
-              4:00 PM - 9:00 PM | Room 401, Block D | Duration: 5 hours
-            </p>
-            <p class="event-meta">
-              NDU IUPC Team Selection Contest 03 | Friday, April 24, 2026 | 3:00
-              PM - 8:00 PM | Room 401, Block D | Duration: 5 hours
-            </p>
-            <p class="event-meta">
-              NDU IUPC Team Selection Contest 04 | Saturday, April 25, 2026 |
-              3:00 PM - 8:00 PM | Room 401, Block D | Duration: 5 hours
-            </p>
+            <div id="adminAddEventPrompt" style="display:none;margin-bottom:1.5rem;background:var(--surface-soft);padding:1rem;border-radius:4px;text-align:center;">
+              <p style="margin-bottom:0.5rem;">Logged in as: <strong id="eventAdminUser"></strong></p>
+              <button class="btn btn-ghost" id="eventLogoutBtn" type="button" style="font-size:0.9rem;">Logout</button>
+            </div>
+            <div id="upcomingEvents" class="events-list">
+              <!-- Upcoming events will be rendered here by script.js -->
+            </div>
+            <form id="addEventForm" class="add-event-form" aria-label="Add upcoming event" style="display:none;">
+              <h4 style="margin-bottom:0.5rem;">Add New Event</h4>
+              <input type="text" id="evtTitle" placeholder="Event title" required />
+              <input type="datetime-local" id="evtDateTime" required />
+              <input type="text" id="evtLocation" placeholder="Location (optional)" />
+              <textarea id="evtDesc" placeholder="Short description (optional)"></textarea>
+              <div style="display:flex;gap:.5rem;align-items:center;margin-top:.5rem;">
+                <button class="btn btn-primary" id="addEventBtn" type="submit">Add Event</button>
+              </div>
+            </form>
           </article>
 
           <article class="event-box">
             <p class="section-kicker event-kicker">Past Events</p>
-            <p class="event-meta">
-              Session for Batch 2K22 (Topic: Data Structures) | Friday, April 17,
-              2026 | 3:00 PM | Room 401, Block D
-            </p>
-            <p class="event-meta">
-              NDU IUPC Team Selection Contest 01 | Saturday, April 18, 2026 |
-              3:00 PM - 8:00 PM | Room 401, Block D | Duration: 5 hours
-            </p>
+            <div id="pastEvents" class="events-list">
+              <!-- Past events will be rendered here by script.js -->
+            </div>
           </article>
         </div>
       </section>
@@ -199,6 +200,7 @@
           >
         </div>
       </section>
+
     </main>
 
     <footer class="site-footer">
@@ -210,6 +212,7 @@
           <a href="#events">Events</a>
           <a href="current-committee.html">Current Committee</a>
           <a href="alumni.html">Alumni</a>
+          <a href="login.html">Login</a>
           <a href="#join">Join</a>
         </nav>
         <p class="footer-address">

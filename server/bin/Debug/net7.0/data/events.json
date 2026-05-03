@@ -1,0 +1,16 @@
+[
+  {
+    "id": "seed1",
+    "title": "Past: Intro to Data Structures",
+    "description": "A recorded session about arrays and linked lists.",
+    "location": "Room 401, Block D",
+    "dateTimeUtc": "2026-04-17T09:00:00Z"
+  },
+  {
+    "id": "seed2",
+    "title": "Upcoming: Team Selection Contest",
+    "description": "NDU IUPC Team Selection Contest 05",
+    "location": "Room 401, Block D",
+    "dateTimeUtc": "2026-12-01T10:00:00Z"
+  }
+]
