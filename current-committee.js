@@ -117,3 +117,4 @@ document.addEventListener('DOMContentLoaded', () => {
       cardsSection.appendChild(groupWrap);
     });
   });
+
