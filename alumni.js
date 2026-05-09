@@ -1,0 +1,218 @@
+async function apiUrl(path) {
+  if (!path) return '/';
+  if (!path.startsWith('/')) path = '/' + path;
+  return window.location.origin + path;
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[c]);
+}
+
+const yearsContainer = document.getElementById('alumniYears');
+const alumniContainer = document.getElementById('alumniContainer');
+
+async function checkAdminSession() {
+  try {
+    const res = await fetch(await apiUrl('/api/admin/session'), { credentials: 'include' });
+    if (!res.ok) { window.isAdminAuthenticated = false; return; }
+    const d = await res.json();
+    window.isAdminAuthenticated = !!d.authenticated;
+  } catch (err) {
+    window.isAdminAuthenticated = false;
+  }
+}
+
+async function loadYears() {
+  try {
+    const res = await fetch(await apiUrl('/api/alumni'));
+    if (!res.ok) throw new Error('Failed to load years');
+    const years = await res.json();
+    renderYearButtons(years);
+  } catch (err) {
+    console.error('alumni years error', err);
+    yearsContainer.innerHTML = '<p style="color:var(--muted)">No archives available.</p>';
+  }
+}
+
+function renderYearButtons(years) {
+  yearsContainer.innerHTML = '';
+  if (!years || years.length === 0) {
+    yearsContainer.innerHTML = '<p style="color:var(--muted)">No archives available.</p>';
+    return;
+  }
+  years.forEach(y => {
+    const wrap = document.createElement('div');
+    wrap.style.display = 'flex';
+    wrap.style.alignItems = 'center';
+    wrap.style.gap = '0.5rem';
+
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-ghost';
+    btn.textContent = y;
+    btn.addEventListener('click', async () => {
+      await loadArchive(y);
+    });
+    wrap.appendChild(btn);
+
+    if (window.isAdminAuthenticated) {
+      const del = document.createElement('button');
+      del.className = 'btn-delete';
+      del.textContent = 'Delete Year';
+      del.title = `Delete archive ${y}`;
+      del.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (!confirm(`Delete archived year ${y}? This cannot be undone.`)) return;
+        try {
+          const res = await fetch(await apiUrl(`/api/alumni/${encodeURIComponent(y)}`), { method: 'DELETE', credentials: 'include' });
+          if (!res.ok) {
+            const txt = await res.text();
+            throw new Error(txt || 'Delete failed');
+          }
+          await loadYears();
+          alumniContainer.innerHTML = '';
+        } catch (err) {
+          alert('Error deleting year: ' + err.message);
+        }
+      });
+      wrap.appendChild(del);
+    }
+
+    yearsContainer.appendChild(wrap);
+  });
+}
+
+async function loadArchive(year) {
+  try {
+    alumniContainer.innerHTML = '<p style="color:var(--muted)">Loading...</p>';
+    let res = await fetch(await apiUrl(`/api/alumni/${encodeURIComponent(year)}`));
+    if (!res.ok) {
+      // try fallback query endpoint
+      res = await fetch(await apiUrl(`/api/alumniByYear?year=${encodeURIComponent(year)}`), { credentials: 'include' });
+    }
+    if (!res.ok) throw new Error('Failed to load archive');
+    const members = await res.json();
+    renderArchive(members);
+  } catch (err) {
+    console.error('loadArchive err', err);
+    alumniContainer.innerHTML = '<p style="color:var(--muted)">Unable to load archive.</p>';
+  }
+}
+
+function renderArchive(members) {
+  if (!members || members.length === 0) {
+    alumniContainer.innerHTML = '<p style="text-align:center;color:var(--muted);">No members for this year.</p>';
+    return;
+  }
+
+  const grouped = new Map();
+  members.forEach(m => {
+    const role = m.role || 'Members';
+    if (!grouped.has(role)) grouped.set(role, []);
+    grouped.get(role).push(m);
+  });
+
+  alumniContainer.innerHTML = '';
+  grouped.forEach((arr, role) => {
+    const g = document.createElement('div');
+    g.className = 'designation-group';
+    const h = document.createElement('h2');
+    h.textContent = role;
+    g.appendChild(h);
+    const grid = document.createElement('div');
+    grid.className = 'designation-grid';
+    arr.forEach(m => {
+      const card = document.createElement('article');
+      card.className = 'card';
+      const photo = document.createElement('div');
+      photo.className = 'photo-wrap';
+      const img = document.createElement('img');
+      img.src = m.picture || 'assets/Anonymous.png';
+      img.alt = m.name;
+      img.className = 'placeholder';
+      const initialsEl = document.createElement('div');
+      initialsEl.className = 'initials';
+      photo.appendChild(initialsEl);
+      photo.appendChild(img);
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.innerHTML = `
+        <div class="name">${escapeHtml(m.name)}</div>
+        <div class="line">Roll: ${escapeHtml(m.roll)}</div>
+        <div class="line">Dept: ${escapeHtml(m.department)} — Batch: ${escapeHtml(m.batch)}</div>
+      `;
+      card.appendChild(photo);
+      card.appendChild(meta);
+      grid.appendChild(card);
+      // process photo and initials
+      processCardPhotoAlumni(card, m);
+    });
+    g.appendChild(grid);
+    alumniContainer.appendChild(g);
+  });
+}
+
+// init
+(async () => {
+  await checkAdminSession();
+  await loadYears();
+  // if year present in query, auto-load it
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const qy = params.get('year');
+    if (qy) await loadArchive(qy);
+  } catch (err) {
+    // ignore
+  }
+})();
+
+function processCardPhotoAlumni(card, member) {
+  try {
+    const photoWrap = card.querySelector('.photo-wrap');
+    if (!photoWrap) return;
+    let initialsEl = photoWrap.querySelector('.initials');
+    if (!initialsEl) {
+      initialsEl = document.createElement('div');
+      initialsEl.className = 'initials';
+      photoWrap.appendChild(initialsEl);
+    }
+    const placeholderImg = photoWrap.querySelector('img.placeholder');
+    let photoPath = (member && member.picture) ? member.picture : (placeholderImg ? placeholderImg.getAttribute('src') : null);
+    if (!photoPath) photoPath = 'assets/Anonymous.png';
+
+    function deriveInitials() {
+      if (!initialsEl) return;
+      if (initialsEl.textContent.trim()) return;
+      const nameNode = card.querySelector('.meta .name');
+      if (!nameNode) return;
+      const text = nameNode.textContent.trim();
+      if (!text) return;
+      const parts = text.split(/\s+/).filter(Boolean);
+      let initials = '';
+      if (parts.length === 1) initials = parts[0].slice(0,2).toUpperCase();
+      else initials = (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+      initialsEl.textContent = initials;
+    }
+    deriveInitials();
+
+    const probe = new Image();
+    probe.onload = () => {
+      if (placeholderImg) placeholderImg.remove();
+      if (initialsEl) initialsEl.style.display = 'none';
+      const real = document.createElement('img');
+      real.src = photoPath;
+      real.alt = (member && member.name) ? member.name : 'Member photo';
+      real.style.width = '100%';
+      real.style.height = '100%';
+      real.style.objectFit = 'cover';
+      photoWrap.prepend(real);
+    };
+    probe.onerror = () => {
+      if (initialsEl) initialsEl.style.display = 'flex';
+      if (placeholderImg) placeholderImg.style.display = 'none';
+    };
+    probe.src = photoPath;
+  } catch (err) {
+    console.error('processCardPhotoAlumni error', err);
+  }
+}

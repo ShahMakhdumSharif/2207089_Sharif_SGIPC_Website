@@ -1,22 +1,17 @@
-// Renamed from committee-cards.js
-// Replace placeholders with real photos if files exist at data-photo.
-// Also derive initials fallback and show if image missing.
+// Committee member photo processing
 document.addEventListener('DOMContentLoaded', () => {
   const cards = Array.from(document.querySelectorAll('.card'));
   cards.forEach(card => {
     const photoWrap = card.querySelector('.photo-wrap');
     const placeholderImg = photoWrap ? photoWrap.querySelector('img.placeholder') : null;
-    // prefer explicit data-photo; otherwise fall back to the placeholder img src (so AnonymousFemale.png is respected)
     let photoPath = card.getAttribute('data-photo') || (placeholderImg ? placeholderImg.getAttribute('src') : null);
     if (!photoPath) {
-      // default to the anonymous placeholder for every member
       card.setAttribute('data-photo', 'assets/Anonymous.png');
       photoPath = 'assets/Anonymous.png';
     }
     const initialsEl = photoWrap.querySelector('.initials');
     const nameNode = card.querySelector('.meta .name');
 
-    // derive initials from Name text if initials empty
     function deriveInitials() {
       if (!initialsEl) return;
       if (initialsEl.textContent.trim()) return;
@@ -32,16 +27,13 @@ document.addEventListener('DOMContentLoaded', () => {
     deriveInitials();
 
     if (!photoPath) {
-      // no photo path set: show initials
       if (initialsEl) initialsEl.style.display = 'flex';
       if (placeholderImg) placeholderImg.style.display = 'none';
       return;
     }
 
-    // probe whether the file exists by attempting to load an Image
     const probe = new Image();
     probe.onload = () => {
-      // file exists — insert the real image at top of photoWrap
       if (placeholderImg) placeholderImg.remove();
       if (initialsEl) initialsEl.style.display = 'none';
       const real = document.createElement('img');
@@ -53,68 +45,287 @@ document.addEventListener('DOMContentLoaded', () => {
       photoWrap.prepend(real);
     };
     probe.onerror = () => {
-      // not found — hide placeholder and show initials as fallback OR keep placeholder visible
-      if (placeholderImg) {
-        // keep placeholder visible to indicate missing photo
-        // show initials over placeholder for clarity
-        if (initialsEl) {
-          initialsEl.style.display = 'flex';
-          // make initials sit on top of placeholder
-          initialsEl.style.position = 'absolute';
-          initialsEl.style.left = 0;
-          initialsEl.style.top = 0;
-          initialsEl.style.display = 'flex';
-          initialsEl.style.alignItems = 'center';
-          initialsEl.style.justifyContent = 'center';
-        }
-      } else if (initialsEl) {
-        initialsEl.style.display = 'flex';
-      }
+      if (initialsEl) initialsEl.style.display = 'flex';
+      if (placeholderImg) placeholderImg.style.display = 'none';
     };
     probe.src = photoPath;
   });
 });
 
-  // Group cards by designation header at runtime.
-  document.addEventListener('DOMContentLoaded', function () {
-    const cardsSection = document.querySelector('section.cards');
-    if (!cardsSection) return;
+// Process a dynamically created card's photo and initials
+function processCardPhoto(card, member) {
+  try {
+    const photoWrap = card.querySelector('.photo-wrap');
+    if (!photoWrap) return;
 
-    // Find all cards and map by designation text (fallback 'Members')
-    const cards = Array.from(cardsSection.querySelectorAll('.card'));
-    const groups = new Map();
+    // create initials element
+    let initialsEl = photoWrap.querySelector('.initials');
+    if (!initialsEl) {
+      initialsEl = document.createElement('div');
+      initialsEl.className = 'initials';
+      photoWrap.appendChild(initialsEl);
+    }
 
-    cards.forEach(card => {
-      const desEl = card.querySelector('.designation');
-      const key = desEl ? desEl.textContent.trim() : 'Members';
-      if (!groups.has(key)) groups.set(key, []);
-      groups.get(key).push(card);
-    });
+    const placeholderImg = photoWrap.querySelector('img.placeholder');
+    let photoPath = (member && member.picture) ? member.picture : (placeholderImg ? placeholderImg.getAttribute('src') : null);
+    if (!photoPath) photoPath = 'assets/Anonymous.png';
 
-    // Clear original cards section
-    cardsSection.innerHTML = '';
+    function deriveInitials() {
+      if (!initialsEl) return;
+      if (initialsEl.textContent.trim()) return;
+      const nameNode = card.querySelector('.meta .name');
+      if (!nameNode) return;
+      const text = nameNode.textContent.trim();
+      if (!text) return;
+      const parts = text.split(/\s+/).filter(Boolean);
+      let initials = '';
+      if (parts.length === 1) initials = parts[0].slice(0,2).toUpperCase();
+      else initials = (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+      initialsEl.textContent = initials;
+    }
+    deriveInitials();
 
-    // For each group, create a .designation-group with heading and grid
-    groups.forEach((groupCards, title) => {
-      const groupWrap = document.createElement('div');
-      groupWrap.className = 'designation-group';
+    const probe = new Image();
+    probe.onload = () => {
+      if (placeholderImg) placeholderImg.remove();
+      if (initialsEl) initialsEl.style.display = 'none';
+      const real = document.createElement('img');
+      real.src = photoPath;
+      real.alt = (member && member.name) ? member.name : 'Member photo';
+      real.style.width = '100%';
+      real.style.height = '100%';
+      real.style.objectFit = 'cover';
+      photoWrap.prepend(real);
+    };
+    probe.onerror = () => {
+      if (initialsEl) initialsEl.style.display = 'flex';
+      if (placeholderImg) placeholderImg.style.display = 'none';
+    };
+    probe.src = photoPath;
+  } catch (err) {
+    console.error('processCardPhoto error', err);
+  }
+}
 
-      const h = document.createElement('h2');
-      h.textContent = title;
-      groupWrap.appendChild(h);
+// ===== Committee Member API integration =====
+let addMemberForm, adminMemberPrompt, memberAdminUser, memberLogoutBtn, committeeContainer, archiveToAlumniBtn;
+let isMemberAdminAuthenticated = false;
 
-      const grid = document.createElement('div');
-      grid.className = 'designation-grid';
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[c]);
+}
 
-      groupCards.forEach(c => {
-        // remove inline designation from card meta to avoid duplication
-        const d = c.querySelector('.designation');
-        if (d) d.remove();
-        grid.appendChild(c);
-      });
+function apiUrl(path) {
+  if (!path) return '/';
+  if (!path.startsWith('/')) path = '/' + path;
+  return window.location.origin + path;
+}
 
-      groupWrap.appendChild(grid);
-      cardsSection.appendChild(groupWrap);
-    });
+function initializeUIElements() {
+  addMemberForm = document.getElementById('addMemberForm');
+  adminMemberPrompt = document.getElementById('adminMemberPrompt');
+  memberAdminUser = document.getElementById('memberAdminUser');
+  memberLogoutBtn = document.getElementById('memberLogoutBtn');
+  committeeContainer = document.getElementById('committeeContainer');
+  archiveToAlumniBtn = document.getElementById('archiveToAlumniBtn');
+}
+
+async function fetchAndRenderMembers() {
+  try {
+    const res = await fetch(apiUrl('/api/committee'), { credentials: 'include' });
+    if (!res.ok) throw new Error('Failed to fetch members');
+    const members = await res.json();
+    renderMembers(members);
+  } catch (err) {
+    console.error('committee fetch error:', err);
+  }
+}
+
+function renderMembers(members) {
+  if (!committeeContainer) return;
+  
+  if (members.length === 0) {
+    committeeContainer.innerHTML = '<p style="text-align:center;color:var(--muted);">No committee members.</p>';
+    return;
+  }
+
+  const groupedMembers = new Map();
+  members.forEach(m => {
+    const role = m.role || 'Members';
+    if (!groupedMembers.has(role)) {
+      groupedMembers.set(role, []);
+    }
+    groupedMembers.get(role).push(m);
   });
+
+  committeeContainer.innerHTML = '';
+
+  groupedMembers.forEach((roleMembers, role) => {
+    const groupWrap = document.createElement('div');
+    groupWrap.className = 'designation-group';
+
+    const heading = document.createElement('h2');
+    heading.textContent = role;
+    groupWrap.appendChild(heading);
+
+    const grid = document.createElement('div');
+    grid.className = 'designation-grid';
+
+    roleMembers.forEach(m => {
+      const card = document.createElement('article');
+      card.className = 'card';
+      card.tabIndex = 0;
+
+      const photoWrap = document.createElement('div');
+      photoWrap.className = 'photo-wrap';
+      const img = document.createElement('img');
+      img.src = m.picture || 'assets/Anonymous.png';
+      img.alt = m.name;
+      img.className = 'placeholder';
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'cover';
+      const initialsEl = document.createElement('div');
+      initialsEl.className = 'initials';
+      photoWrap.appendChild(initialsEl);
+      photoWrap.appendChild(img);
+
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.innerHTML = `
+        <div class="name">${escapeHtml(m.name)}</div>
+        <div class="line">Roll: ${escapeHtml(m.roll)}</div>
+        <div class="line">Dept: ${escapeHtml(m.department)} — Batch: ${escapeHtml(m.batch)}</div>
+        ${isMemberAdminAuthenticated ? `<button class="btn-delete" data-member-id="${m.id}" style="margin-top:0.5rem;padding:0.4rem 0.8rem;font-size:0.85rem;">Delete</button>` : ''}
+      `;
+
+      card.appendChild(photoWrap);
+      card.appendChild(meta);
+      grid.appendChild(card);
+      // process photo probing and initials for this dynamically created card
+      processCardPhoto(card, m);
+    });
+
+    groupWrap.appendChild(grid);
+    committeeContainer.appendChild(groupWrap);
+  });
+
+  if (isMemberAdminAuthenticated) {
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        if (!confirm('Delete this member?')) return;
+        const memberId = e.target.dataset.memberId;
+        try {
+          const res = await fetch(apiUrl(`/api/committee/${memberId}`), { method: 'DELETE', credentials: 'include' });
+          if (!res.ok) throw new Error('Delete failed');
+          await fetchAndRenderMembers();
+        } catch (err) {
+          alert('Error deleting member: ' + err.message);
+        }
+      });
+    });
+  }
+}
+
+async function checkMemberAdmin() {
+  try {
+    const res = await fetch(apiUrl('/api/admin/session'), { credentials: 'include' });
+    if (!res.ok) throw new Error('session check failed');
+    const data = await res.json();
+    isMemberAdminAuthenticated = !!data.authenticated;
+
+    if (addMemberForm) addMemberForm.style.display = isMemberAdminAuthenticated ? 'block' : 'none';
+    if (adminMemberPrompt) adminMemberPrompt.style.display = isMemberAdminAuthenticated ? 'block' : 'none';
+    if (archiveToAlumniBtn) archiveToAlumniBtn.style.display = isMemberAdminAuthenticated ? 'inline-block' : 'none';
+    if (memberAdminUser) memberAdminUser.textContent = localStorage.getItem('adminUsername') || 'Admin';
+
+    await fetchAndRenderMembers();
+  } catch (e) {
+    console.error('session check error:', e.message);
+    isMemberAdminAuthenticated = false;
+    if (addMemberForm) addMemberForm.style.display = 'none';
+    if (adminMemberPrompt) adminMemberPrompt.style.display = 'none';
+    if (archiveToAlumniBtn) archiveToAlumniBtn.style.display = 'none';
+    await fetchAndRenderMembers();
+  }
+}
+
+// Ready state check - script is at end of HTML
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    initializeUIElements();
+    setupFormHandlers();
+    checkMemberAdmin();
+    setInterval(checkMemberAdmin, 60 * 1000);
+  });
+} else {
+  initializeUIElements();
+  setupFormHandlers();
+  checkMemberAdmin();
+  setInterval(checkMemberAdmin, 60 * 1000);
+}
+
+function setupFormHandlers() {
+  if (addMemberForm) {
+    addMemberForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('memName')?.value.trim();
+      const roll = document.getElementById('memRoll')?.value.trim();
+      const dept = document.getElementById('memDept')?.value.trim();
+      const batch = document.getElementById('memBatch')?.value.trim();
+      const role = document.getElementById('memRole')?.value.trim();
+      const picture = document.getElementById('memPicture')?.value.trim();
+
+      if (!name || !role) return alert('Name and role required');
+
+      try {
+        const res = await fetch(apiUrl('/api/committee'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ name, roll, department: dept, batch, role, picture })
+        });
+        if (!res.ok) throw new Error('Add failed');
+        addMemberForm.reset();
+        await fetchAndRenderMembers();
+      } catch (err) {
+        alert('Error adding member: ' + err.message);
+      }
+    });
+  }
+
+  if (memberLogoutBtn) {
+    memberLogoutBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        await fetch(apiUrl('/api/admin/logout'), { method: 'POST', credentials: 'include' });
+      } catch {}
+      localStorage.removeItem('adminUsername');
+      await checkMemberAdmin();
+    });
+  }
+
+  if (archiveToAlumniBtn) {
+    archiveToAlumniBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const year = prompt('Enter the year to archive this committee under (e.g. 2025):');
+      if (!year) return;
+      const y = String(year).trim();
+      if (!/^[0-9]{4}$/.test(y)) {
+        if (!confirm('Year does not look like YYYY. Continue anyway?')) return;
+      }
+      try {
+        const res = await fetch(apiUrl(`/api/alumni/archive?year=${encodeURIComponent(y)}`), { method: 'POST', credentials: 'include' });
+        if (!res.ok) throw new Error('Archive failed');
+        const data = await res.json();
+        alert(`Archived ${data.count || 0} members under ${data.year}`);
+        // redirect to alumni page and show the archived year
+        window.location.href = `/alumni.html?year=${encodeURIComponent(y)}`;
+      } catch (err) {
+        alert('Error archiving committee: ' + err.message);
+      }
+    });
+  }
+}
 

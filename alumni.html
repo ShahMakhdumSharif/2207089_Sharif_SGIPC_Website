@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>SGIPC — Current Committee</title>
+    <title>SGIPC — Alumni</title>
     <link rel="stylesheet" href="styles.css?v=20260507a">
+    <link rel="stylesheet" href="current-committee.css?v=20260507a">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="current-committee.css?v=20260507a">
   </head>
 
   <body>
@@ -16,7 +16,7 @@
     <div class="ambient ambient-two"></div>
 
     <header class="site-header">
-  <a href="index.html" class="brand">
+      <a href="index.html" class="brand">
         <img src="assets/sgipc-logo.png" alt="SGIPC logo" class="brand-logo" width="88" height="88" />
         <div class="brand-text">
           <h1>SGIPC.KUET</h1>
@@ -41,31 +41,14 @@
     </header>
 
     <main>
-      <div style="padding: 0 0 1rem; margin-bottom: 1rem;">
-        <div id="adminMemberPrompt" style="display:none;background:var(--surface-soft);padding:1rem;border-radius:4px;text-align:center;margin-bottom:1rem;">
-          <p style="margin-bottom:0.5rem;">Logged in as: <strong id="memberAdminUser"></strong></p>
-          <button class="btn btn-ghost" id="memberLogoutBtn" type="button" style="font-size:0.9rem;">Logout</button>
-        </div>
-        <form id="addMemberForm" class="add-event-form" style="display:none;max-width:100%;">
-          <h4 style="margin-bottom:0.5rem;">Add New Committee Member</h4>
-          <input type="text" id="memName" placeholder="Name" required />
-          <input type="text" id="memRoll" placeholder="Roll Number" />
-          <input type="text" id="memDept" placeholder="Department" />
-          <input type="text" id="memBatch" placeholder="Batch (e.g., 2k20)" />
-          <input type="text" id="memRole" placeholder="Role (e.g., President)" required />
-          <input type="text" id="memPicture" placeholder="Picture path (e.g., assets/photo.png)" />
-          <div style="display:flex;gap:.5rem;align-items:center;margin-top:.5rem;">
-            <button class="btn btn-primary" id="addMemberBtn" type="submit">Add Member</button>
-          </div>
-        </form>
-          <div style="margin-top:.5rem;">
-            <button class="btn btn-ghost" id="archiveToAlumniBtn" style="display:none;">Add Committee to Alumni</button>
-          </div>
+      <div style="padding:1rem;max-width:960px;margin:0 auto;">
+        <h2 style="margin-bottom:0.5rem;">Alumni Archives</h2>
+        <p style="color:var(--muted);margin-bottom:1rem;">Select a year to view archived committee members.</p>
+        <div id="alumniYears" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;"></div>
+        <section id="alumniContainer" class="cards"></section>
       </div>
-      <section class="cards" id="committeeContainer" aria-label="Committee members">
-        <!-- Committee members will be rendered here by JavaScript -->
-      </section>
     </main>
+
     <footer class="site-footer">
       <div class="footer-inner">
         <nav class="footer-nav" aria-label="Footer Navigation">
@@ -85,7 +68,7 @@
       </div>
     </footer>
 
-    <script src="script.js?v=20260507c"></script>
-    <script src="current-committee.js?v=20260507c"></script>
+    <script src="script.js?v=20260509a"></script>
+    <script src="alumni.js?v=20260509a"></script>
   </body>
 </html>

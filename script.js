@@ -220,7 +220,7 @@ if (adminLoginForm) {
     const p = document.getElementById('adminPass').value;
     try {
       const r = await fetch(apiUrl('/api/admin/login'), {
-        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({username:u,password:p})
+        method: 'POST', headers: {'Content-Type':'application/json'}, credentials: 'include', body: JSON.stringify({username:u,password:p})
       });
       if (!r.ok) throw new Error('login failed');
       // Store username and show profile

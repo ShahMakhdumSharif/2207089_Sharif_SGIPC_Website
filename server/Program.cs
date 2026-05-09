@@ -33,6 +33,8 @@ bool IsAdminSession(HttpRequest req)
 var dataDir = Path.Combine(AppContext.BaseDirectory, "data");
 Directory.CreateDirectory(dataDir);
 var dataFile = Path.Combine(dataDir, "events.json");
+var committeeFile = Path.Combine(dataDir, "current-committee.json");
+var alumniFile = Path.Combine(dataDir, "alumni.json");
 
 static List<EventItem> LoadEvents(string path)
 {
@@ -55,6 +57,48 @@ static void SaveEvents(string path, List<EventItem> list)
     File.WriteAllText(path, txt);
 }
 
+static List<CommitteeMember> LoadCommittee(string path)
+{
+    try
+    {
+        if (!File.Exists(path)) return new List<CommitteeMember>();
+        var txt = File.ReadAllText(path);
+        return JsonSerializer.Deserialize<List<CommitteeMember>>(txt) ?? new List<CommitteeMember>();
+    }
+    catch
+    {
+        return new List<CommitteeMember>();
+    }
+}
+
+static void SaveCommittee(string path, List<CommitteeMember> list)
+{
+    var opts = new JsonSerializerOptions { WriteIndented = true };
+    var txt = JsonSerializer.Serialize(list, opts);
+    File.WriteAllText(path, txt);
+}
+
+static Dictionary<string, List<CommitteeMember>> LoadAlumni(string path)
+{
+    try
+    {
+        if (!File.Exists(path)) return new Dictionary<string, List<CommitteeMember>>();
+        var txt = File.ReadAllText(path);
+        return JsonSerializer.Deserialize<Dictionary<string, List<CommitteeMember>>>(txt) ?? new Dictionary<string, List<CommitteeMember>>();
+    }
+    catch
+    {
+        return new Dictionary<string, List<CommitteeMember>>();
+    }
+}
+
+static void SaveAlumni(string path, Dictionary<string, List<CommitteeMember>> dict)
+{
+    var opts = new JsonSerializerOptions { WriteIndented = true };
+    var txt = JsonSerializer.Serialize(dict, opts);
+    File.WriteAllText(path, txt);
+}
+
 // Serve a simple health endpoint
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok" }));
 
@@ -64,6 +108,123 @@ app.MapGet("/api/events", () => {
     var upcoming = events.Where(e => e.DateTimeUtc > now).OrderBy(e => e.DateTimeUtc).ToList();
     var past = events.Where(e => e.DateTimeUtc <= now).OrderByDescending(e => e.DateTimeUtc).ToList();
     return Results.Ok(new { upcoming, past });
+});
+
+app.MapGet("/api/committee", () => {
+    var members = LoadCommittee(committeeFile);
+    return Results.Ok(members);
+});
+
+// Alumni endpoints
+app.MapGet("/api/alumni", (HttpRequest req) => {
+    var dict = LoadAlumni(alumniFile);
+    var years = dict.Keys.OrderByDescending(y => y).ToList();
+    return Results.Ok(years);
+});
+
+app.MapGet("/api/alumni/{year}", (string year) => {
+    var dict = LoadAlumni(alumniFile);
+    if (!dict.ContainsKey(year)) return Results.NotFound();
+    return Results.Ok(dict[year]);
+});
+
+// Fallback endpoint (query param) in case path-based route has issues on some hosts
+app.MapGet("/api/alumniByYear", (HttpRequest req) => {
+    var year = req.Query["year"].ToString();
+    if (string.IsNullOrWhiteSpace(year)) return Results.BadRequest(new { error = "year required" });
+    var dict = LoadAlumni(alumniFile);
+    if (!dict.ContainsKey(year)) return Results.NotFound();
+    return Results.Ok(dict[year]);
+});
+
+app.MapDelete("/api/alumni/{year}", (HttpRequest req, string year) => {
+    try
+    {
+        if (!IsAdminSession(req)) return Results.Unauthorized();
+        var dict = LoadAlumni(alumniFile);
+        if (!dict.ContainsKey(year)) return Results.NotFound();
+        dict.Remove(year);
+        SaveAlumni(alumniFile, dict);
+        return Results.Ok(new { deleted = true, year = year });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+});
+
+app.MapPost("/api/alumni/archive", async (HttpRequest req) => {
+    try
+    {
+        if (!IsAdminSession(req)) return Results.Unauthorized();
+
+        var year = req.Query["year"].ToString();
+        if (string.IsNullOrWhiteSpace(year)) return Results.BadRequest(new { error = "year query parameter required" });
+
+        var members = LoadCommittee(committeeFile);
+        var dict = LoadAlumni(alumniFile);
+        // replace (not append) to avoid duplicates
+        dict[year] = members;
+        SaveAlumni(alumniFile, dict);
+
+        // clear current committee
+        SaveCommittee(committeeFile, new List<CommitteeMember>());
+
+        return Results.Ok(new { archived = true, year = year, count = members.Count });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+});
+
+app.MapPost("/api/committee", async (HttpRequest req) => {
+    try
+    {
+        if (!IsAdminSession(req)) return Results.Unauthorized();
+
+        var input = await JsonSerializer.DeserializeAsync<CommitteeInput>(req.Body);
+        if (input == null || string.IsNullOrWhiteSpace(input.Name) || string.IsNullOrWhiteSpace(input.Role))
+            return Results.BadRequest(new { error = "name and role required" });
+
+        var members = LoadCommittee(committeeFile);
+        var id = Guid.NewGuid().ToString("N");
+        var item = new CommitteeMember {
+            Id = id,
+            Name = input.Name.Trim(),
+            Roll = (input.Roll ?? string.Empty).Trim(),
+            Department = (input.Department ?? string.Empty).Trim(),
+            Batch = (input.Batch ?? string.Empty).Trim(),
+            Role = input.Role.Trim(),
+            Picture = (input.Picture ?? string.Empty).Trim()
+        };
+        members.Add(item);
+        SaveCommittee(committeeFile, members);
+        return Results.Created($"/api/committee/{id}", item);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+});
+
+app.MapDelete("/api/committee/{id}", async (HttpRequest req, string id) => {
+    try
+    {
+        if (!IsAdminSession(req)) return Results.Unauthorized();
+
+        var members = LoadCommittee(committeeFile);
+        var member = members.FirstOrDefault(m => m.Id == id);
+        if (member == null) return Results.NotFound();
+
+        members.Remove(member);
+        SaveCommittee(committeeFile, members);
+        return Results.Ok(new { deleted = true });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
 });
 
 app.MapPost("/api/events", async (HttpRequest req) => {
@@ -195,4 +356,25 @@ public class AdminLogin
 {
     [JsonPropertyName("username")] public string? Username { get; set; }
     [JsonPropertyName("password")] public string? Password { get; set; }
+}
+
+public class CommitteeMember
+{
+    [JsonPropertyName("id")] public string Id { get; set; } = string.Empty;
+    [JsonPropertyName("name")] public string Name { get; set; } = string.Empty;
+    [JsonPropertyName("roll")] public string Roll { get; set; } = string.Empty;
+    [JsonPropertyName("department")] public string Department { get; set; } = string.Empty;
+    [JsonPropertyName("batch")] public string Batch { get; set; } = string.Empty;
+    [JsonPropertyName("role")] public string Role { get; set; } = string.Empty;
+    [JsonPropertyName("picture")] public string Picture { get; set; } = string.Empty;
+}
+
+public class CommitteeInput
+{
+    [JsonPropertyName("name")] public string? Name { get; set; }
+    [JsonPropertyName("roll")] public string? Roll { get; set; }
+    [JsonPropertyName("department")] public string? Department { get; set; }
+    [JsonPropertyName("batch")] public string? Batch { get; set; }
+    [JsonPropertyName("role")] public string? Role { get; set; }
+    [JsonPropertyName("picture")] public string? Picture { get; set; }
 }
