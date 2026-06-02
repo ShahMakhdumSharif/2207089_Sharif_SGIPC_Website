@@ -158,19 +158,31 @@ app.MapPost("/api/alumni/archive", async (HttpRequest req) => {
     {
         if (!IsAdminSession(req)) return Results.Unauthorized();
 
-        var year = req.Query["year"].ToString();
-        if (string.IsNullOrWhiteSpace(year)) return Results.BadRequest(new { error = "year query parameter required" });
+        // Accept JSON body { "year": "2025" } for reliability across hosts
+        string? year = null;
+        try
+        {
+            var payload = await JsonSerializer.DeserializeAsync<Dictionary<string,string>>(req.Body);
+            if (payload != null && payload.TryGetValue("year", out var y)) year = y;
+        }
+        catch
+        {
+            // ignore - will validate below
+        }
+
+        if (string.IsNullOrWhiteSpace(year)) return Results.BadRequest(new { error = "year required in request body" });
 
         var members = LoadCommittee(committeeFile);
         var dict = LoadAlumni(alumniFile);
-        // replace (not append) to avoid duplicates
+        if (dict.ContainsKey(year)) return Results.Conflict(new { error = "year already exists in alumni" });
+
         dict[year] = members;
         SaveAlumni(alumniFile, dict);
 
         // clear current committee
         SaveCommittee(committeeFile, new List<CommitteeMember>());
 
-        return Results.Ok(new { archived = true, year = year, count = members.Count });
+        return Results.Ok(new { archived = true, year = year, count = members.Count, members = members });
     }
     catch (Exception ex)
     {

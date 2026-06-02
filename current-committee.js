@@ -309,19 +309,48 @@ function setupFormHandlers() {
   if (archiveToAlumniBtn) {
     archiveToAlumniBtn.addEventListener('click', async (e) => {
       e.preventDefault();
+      try {
+        const membersRes = await fetch(apiUrl('/api/committee'), { credentials: 'include' });
+        if (!membersRes.ok) throw new Error('Failed to load committee');
+        const members = await membersRes.json();
+        if (!Array.isArray(members) || members.length === 0) {
+          alert('The current committee is empty.');
+          return;
+        }
+      } catch (err) {
+        alert('Error checking committee members: ' + err.message);
+        return;
+      }
+
       const year = prompt('Enter the year to archive this committee under (e.g. 2025):');
-      if (!year) return;
+      if (!year) {
+        return;
+      }
       const y = String(year).trim();
       if (!/^[0-9]{4}$/.test(y)) {
-        if (!confirm('Year does not look like YYYY. Continue anyway?')) return;
+        if (!confirm('Year does not look like YYYY. Continue anyway?')) {
+          return;
+        }
       }
       try {
-        const res = await fetch(apiUrl(`/api/alumni/archive?year=${encodeURIComponent(y)}`), { method: 'POST', credentials: 'include' });
-        if (!res.ok) throw new Error('Archive failed');
+        const res = await fetch(apiUrl('/api/alumni/archive'), {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ year: y })
+        });
+        if (!res.ok) {
+          const txt = await res.text();
+          throw new Error(txt || 'Archive failed');
+        }
         const data = await res.json();
         alert(`Archived ${data.count || 0} members under ${data.year}`);
-        // redirect to alumni page and show the archived year
-        window.location.href = `/alumni.html?year=${encodeURIComponent(y)}`;
+        // Signal the alumni page to load the new year when it is opened.
+        try {
+          localStorage.setItem('newArchivedYear', data.year);
+        } catch (err) {
+          // ignore storage errors
+        }
       } catch (err) {
         alert('Error archiving committee: ' + err.message);
       }

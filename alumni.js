@@ -1,4 +1,4 @@
-async function apiUrl(path) {
+function apiUrl(path) {
   if (!path) return '/';
   if (!path.startsWith('/')) path = '/' + path;
   return window.location.origin + path;
@@ -92,27 +92,46 @@ async function loadArchive(year) {
     }
     if (!res.ok) throw new Error('Failed to load archive');
     const members = await res.json();
-    renderArchive(members);
+    
+    renderArchive(members, year);
   } catch (err) {
     console.error('loadArchive err', err);
     alumniContainer.innerHTML = '<p style="color:var(--muted)">Unable to load archive.</p>';
   }
 }
 
-function renderArchive(members) {
-  if (!members || members.length === 0) {
-    alumniContainer.innerHTML = '<p style="text-align:center;color:var(--muted);">No members for this year.</p>';
-    return;
-  }
+function renderArchive(members, year) {
+  
 
+  // Build grouping first
   const grouped = new Map();
-  members.forEach(m => {
+  (Array.isArray(members) ? members : []).forEach(m => {
     const role = m.role || 'Members';
     if (!grouped.has(role)) grouped.set(role, []);
     grouped.get(role).push(m);
   });
 
+  // Clear container and insert a stable heading (with id for easier DOM inspection)
   alumniContainer.innerHTML = '';
+  const yearHeading = document.createElement('h3');
+  yearHeading.id = 'archiveYearHeading';
+  yearHeading.style.marginBottom = '0.6rem';
+  yearHeading.style.color = 'var(--accent-strong)';
+  yearHeading.style.fontWeight = '700';
+  yearHeading.textContent = year ? `The member for the year: ${year}` : 'The member for the year:';
+  alumniContainer.appendChild(yearHeading);
+
+  // If no members, show a clear message so the heading isn't the only element
+  if (grouped.size === 0) {
+    const msg = document.createElement('p');
+    msg.style.textAlign = 'center';
+    msg.style.color = 'var(--muted)';
+    msg.style.marginTop = '0.4rem';
+    msg.textContent = 'No members archived for this year.';
+    alumniContainer.appendChild(msg);
+    return;
+  }
+
   grouped.forEach((arr, role) => {
     const g = document.createElement('div');
     g.className = 'designation-group';
@@ -165,6 +184,31 @@ function renderArchive(members) {
     // ignore
   }
 })();
+
+// Listen for archival events from other pages (storage event) to auto-load the new year
+window.addEventListener('storage', (e) => {
+  try {
+    if (e.key === 'newArchivedYear' && e.newValue) {
+      loadYears().then(() => loadArchive(e.newValue));
+      // remove the flag so it's a one-time signal
+      localStorage.removeItem('newArchivedYear');
+    }
+  } catch (err) {
+    // ignore
+  }
+});
+
+// Also check localStorage on load in case the flag was set in this tab
+try {
+  const pending = localStorage.getItem('newArchivedYear');
+  if (pending) {
+    // clear and handle
+    localStorage.removeItem('newArchivedYear');
+    (async () => { await loadYears(); await loadArchive(pending); })();
+  }
+} catch (err) {
+  // ignore
+}
 
 function processCardPhotoAlumni(card, member) {
   try {
