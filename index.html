@@ -47,8 +47,8 @@
         <a href="#achievements">Achievements</a>
         <a href="#events">Events</a>
         <a href="current-committee.html">Current Committee</a>
-        <a href="alumni.html">Previous Committee</a>
-        <a href="login.html">Admin Login</a>
+        <a href="previous-committee.html">Previous Committee</a>
+        <a href="login.html" data-admin-auth-link="true">Admin Login</a>
         <a href="#join">Join</a>
       </nav>
     </header>
@@ -100,10 +100,23 @@
             <p class="stat-value" data-count="300" data-suffix="+">0</p>
             <p class="stat-label">Active Registered Learners</p>
           </article>
-          <a class="stat-card stat-card-link" href="#join">
-            <p class="stat-value" data-count="15" data-suffix="+">0</p>
-            <p class="stat-label">Teams Formed</p>
-          </a>
+          <article class="stat-card">
+            <button
+              class="stat-card-button"
+              id="teamsFormedBtn"
+              type="button"
+              aria-controls="teamsFormedMessage"
+              aria-expanded="false"
+            >
+              <p class="stat-value" data-count="15">0</p>
+              <p class="stat-label">Teams Formed each year</p>
+            </button>
+            <p id="teamsFormedMessage" class="teams-formed-message" hidden>
+              Each year, SGIPC arranges 8 to 10 solo contests to select the finest
+              programmers and form 15 teams of three members each, based on solo
+              contest performance, Codeforces ratings, practice, and AtCoder ratings.
+            </p>
+          </article>
         </div>
       </section>
 
@@ -162,7 +175,7 @@
           <a class="achievement-jump-link" href="#icpc-achievements"
             ><span class="achievement-jump-title">ICPC Achievements</span
             ><span class="achievement-jump-desc"
-              >Click to see the successes of the SGIPC team in the recent
+              >Click to see SGIPC team successes in the recent
               International Collegiate Programming Contest.</span
             ></a
           >
@@ -182,7 +195,6 @@
             <p class="section-kicker event-kicker">Upcoming Events</p>
             <div id="adminAddEventPrompt" style="display:none;margin-bottom:1.5rem;background:var(--surface-soft);padding:1rem;border-radius:4px;text-align:center;">
               <p style="margin-bottom:0.5rem;">Logged in as: <strong id="eventAdminUser"></strong></p>
-              <button class="btn btn-ghost" id="eventLogoutBtn" type="button" style="font-size:0.9rem;">Logout</button>
             </div>
             <div id="upcomingEvents" class="events-list">
               <!-- Upcoming events will be rendered here by script.js -->
@@ -216,16 +228,89 @@
           successful community at KUET.
         </p>
         <div class="join-actions">
-          <a
+          <button
             class="btn btn-primary"
-            href="https://forms.gle/TxPCMxXHzbcvkNJM6"
-            target="_blank"
-            rel="noopener noreferrer"
-            >Join the Community</a
+            id="joinCommunityBtn"
+            type="button"
+            aria-controls="joinFormPanel"
+            aria-expanded="false"
           >
+            Join the Community
+          </button>
           <a class="btn btn-ghost" href="mailto:president.sgipc.kuet@gmail.com"
             >Contact the Club</a
           >
+        </div>
+
+        <div class="join-panel" id="joinFormPanel" hidden>
+          <div class="join-panel-card" id="joinApplicantCard">
+            <p class="section-kicker">Quick Question</p>
+            <h4>Join SGIPC</h4>
+            <p class="join-panel-copy">
+              Fill out the details below. The admin will review your application.
+            </p>
+            <form id="joinForm" class="join-form">
+              <div class="join-field-grid">
+                <div class="join-field">
+                  <label class="join-label" for="joinName">Name:</label>
+                  <input id="joinName" class="join-input" type="text" required />
+                </div>
+                <div class="join-field">
+                  <label class="join-label" for="joinRoll">Roll:</label>
+                  <input id="joinRoll" class="join-input" type="text" required />
+                </div>
+                <div class="join-field">
+                  <label class="join-label" for="joinBatch">Batch:</label>
+                  <input id="joinBatch" class="join-input" type="text" required />
+                </div>
+                <div class="join-field">
+                  <label class="join-label" for="joinDepartment">Department:</label>
+                  <input id="joinDepartment" class="join-input" type="text" required />
+                </div>
+                <div class="join-field">
+                  <label class="join-label" for="joinEmail">Email:</label>
+                  <input id="joinEmail" class="join-input" type="email" required />
+                </div>
+                <div class="join-field">
+                  <label class="join-label" for="joinCodeforces">Codeforces handle:</label>
+                  <input id="joinCodeforces" class="join-input" type="text" required />
+                </div>
+                <div class="join-field">
+                  <label class="join-label" for="joinAtCoder">AtCoder handle:</label>
+                  <input id="joinAtCoder" class="join-input" type="text" required />
+                </div>
+              </div>
+              <div class="join-field">
+                <label class="join-label" for="joinReason">Why you want to join SGIPC:</label>
+                <textarea
+                  id="joinReason"
+                  class="join-textarea"
+                  rows="5"
+                  placeholder="Tell us what excites you about competitive programming..."
+                  required
+                ></textarea>
+              </div>
+              <div class="join-form-actions">
+                <button class="btn btn-primary" type="submit">Submit</button>
+              </div>
+              <p id="joinFormStatus" class="join-status" aria-live="polite"></p>
+            </form>
+          </div>
+
+          <div class="join-panel-card join-admin-card" id="joinAdminCard" hidden>
+            <div class="join-admin-header">
+              <div>
+                <p class="section-kicker">Admin View</p>
+                <h4>Join requests</h4>
+              </div>
+              <div class="join-admin-meta">
+                Logged in as: <strong id="joinAdminUser">Admin</strong>
+              </div>
+            </div>
+            <div id="joinRequestsList" class="join-requests-list">
+              <p class="join-empty">No join requests yet.</p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -238,8 +323,8 @@
           <a href="#achievements">Achievements</a>
           <a href="#events">Events</a>
           <a href="current-committee.html">Current Committee</a>
-          <a href="alumni.html">Previous Committee</a>
-          <a href="login.html">Admin Login</a>
+          <a href="previous-committee.html">Previous Committee</a>
+          <a href="login.html" data-admin-auth-link="true">Admin Login</a>
           <a href="#join">Join</a>
         </nav>
         <p class="footer-address">

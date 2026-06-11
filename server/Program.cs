@@ -34,7 +34,8 @@ var dataDir = Path.Combine(AppContext.BaseDirectory, "data");
 Directory.CreateDirectory(dataDir);
 var dataFile = Path.Combine(dataDir, "events.json");
 var committeeFile = Path.Combine(dataDir, "current-committee.json");
-var alumniFile = Path.Combine(dataDir, "alumni.json");
+var previousCommitteeFile = Path.Combine(dataDir, "previous-committee.json");
+var joinRequestsFile = Path.Combine(dataDir, "join-requests.json");
 
 static List<EventItem> LoadEvents(string path)
 {
@@ -78,7 +79,7 @@ static void SaveCommittee(string path, List<CommitteeMember> list)
     File.WriteAllText(path, txt);
 }
 
-static Dictionary<string, List<CommitteeMember>> LoadAlumni(string path)
+static Dictionary<string, List<CommitteeMember>> LoadPreviousCommittee(string path)
 {
     try
     {
@@ -92,10 +93,31 @@ static Dictionary<string, List<CommitteeMember>> LoadAlumni(string path)
     }
 }
 
-static void SaveAlumni(string path, Dictionary<string, List<CommitteeMember>> dict)
+static void SavePreviousCommittee(string path, Dictionary<string, List<CommitteeMember>> dict)
 {
     var opts = new JsonSerializerOptions { WriteIndented = true };
     var txt = JsonSerializer.Serialize(dict, opts);
+    File.WriteAllText(path, txt);
+}
+
+static List<JoinRequest> LoadJoinRequests(string path)
+{
+    try
+    {
+        if (!File.Exists(path)) return new List<JoinRequest>();
+        var txt = File.ReadAllText(path);
+        return JsonSerializer.Deserialize<List<JoinRequest>>(txt) ?? new List<JoinRequest>();
+    }
+    catch
+    {
+        return new List<JoinRequest>();
+    }
+}
+
+static void SaveJoinRequests(string path, List<JoinRequest> list)
+{
+    var opts = new JsonSerializerOptions { WriteIndented = true };
+    var txt = JsonSerializer.Serialize(list, opts);
     File.WriteAllText(path, txt);
 }
 
@@ -115,36 +137,44 @@ app.MapGet("/api/committee", () => {
     return Results.Ok(members);
 });
 
-// Alumni endpoints
-app.MapGet("/api/alumni", (HttpRequest req) => {
-    var dict = LoadAlumni(alumniFile);
+app.MapGet("/api/join-requests", (HttpRequest req) => {
+    if (!IsAdminSession(req)) return Results.Unauthorized();
+    var requests = LoadJoinRequests(joinRequestsFile)
+        .OrderByDescending(r => r.CreatedAtUtc)
+        .ToList();
+    return Results.Ok(requests);
+});
+
+// Previous committee endpoints
+app.MapGet("/api/previous-committee", (HttpRequest req) => {
+    var dict = LoadPreviousCommittee(previousCommitteeFile);
     var years = dict.Keys.OrderByDescending(y => y).ToList();
     return Results.Ok(years);
 });
 
-app.MapGet("/api/alumni/{year}", (string year) => {
-    var dict = LoadAlumni(alumniFile);
+app.MapGet("/api/previous-committee/{year}", (string year) => {
+    var dict = LoadPreviousCommittee(previousCommitteeFile);
     if (!dict.ContainsKey(year)) return Results.NotFound();
     return Results.Ok(dict[year]);
 });
 
 // Fallback endpoint (query param) in case path-based route has issues on some hosts
-app.MapGet("/api/alumniByYear", (HttpRequest req) => {
+app.MapGet("/api/previous-committee-by-year", (HttpRequest req) => {
     var year = req.Query["year"].ToString();
     if (string.IsNullOrWhiteSpace(year)) return Results.BadRequest(new { error = "year required" });
-    var dict = LoadAlumni(alumniFile);
+    var dict = LoadPreviousCommittee(previousCommitteeFile);
     if (!dict.ContainsKey(year)) return Results.NotFound();
     return Results.Ok(dict[year]);
 });
 
-app.MapDelete("/api/alumni/{year}", (HttpRequest req, string year) => {
+app.MapDelete("/api/previous-committee/{year}", (HttpRequest req, string year) => {
     try
     {
         if (!IsAdminSession(req)) return Results.Unauthorized();
-        var dict = LoadAlumni(alumniFile);
+        var dict = LoadPreviousCommittee(previousCommitteeFile);
         if (!dict.ContainsKey(year)) return Results.NotFound();
         dict.Remove(year);
-        SaveAlumni(alumniFile, dict);
+        SavePreviousCommittee(previousCommitteeFile, dict);
         return Results.Ok(new { deleted = true, year = year });
     }
     catch (Exception ex)
@@ -153,7 +183,7 @@ app.MapDelete("/api/alumni/{year}", (HttpRequest req, string year) => {
     }
 });
 
-app.MapPost("/api/alumni/archive", async (HttpRequest req) => {
+app.MapPost("/api/previous-committee/archive", async (HttpRequest req) => {
     try
     {
         if (!IsAdminSession(req)) return Results.Unauthorized();
@@ -173,11 +203,11 @@ app.MapPost("/api/alumni/archive", async (HttpRequest req) => {
         if (string.IsNullOrWhiteSpace(year)) return Results.BadRequest(new { error = "year required in request body" });
 
         var members = LoadCommittee(committeeFile);
-        var dict = LoadAlumni(alumniFile);
-        if (dict.ContainsKey(year)) return Results.Conflict(new { error = "year already exists in alumni" });
+        var dict = LoadPreviousCommittee(previousCommitteeFile);
+        if (dict.ContainsKey(year)) return Results.Conflict(new { error = "year already exists in previous committee" });
 
         dict[year] = members;
-        SaveAlumni(alumniFile, dict);
+        SavePreviousCommittee(previousCommitteeFile, dict);
 
         // clear current committee
         SaveCommittee(committeeFile, new List<CommitteeMember>());
@@ -265,6 +295,48 @@ app.MapPost("/api/events", async (HttpRequest req) => {
         events.Add(item);
         SaveEvents(dataFile, events);
         return Results.Created($"/api/events/{id}", item);
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+});
+
+app.MapPost("/api/join-requests", async (HttpRequest req) => {
+    try
+    {
+        var input = await JsonSerializer.DeserializeAsync<JoinRequestInput>(req.Body);
+        if (input == null ||
+            string.IsNullOrWhiteSpace(input.Name) ||
+            string.IsNullOrWhiteSpace(input.Roll) ||
+            string.IsNullOrWhiteSpace(input.Batch) ||
+            string.IsNullOrWhiteSpace(input.Department) ||
+            string.IsNullOrWhiteSpace(input.Email) ||
+            string.IsNullOrWhiteSpace(input.CodeforcesHandle) ||
+            string.IsNullOrWhiteSpace(input.AtCoderHandle) ||
+            string.IsNullOrWhiteSpace(input.WhyYouWantToJoin))
+        {
+            return Results.BadRequest(new { error = "all join fields are required" });
+        }
+
+        var requests = LoadJoinRequests(joinRequestsFile);
+        var item = new JoinRequest
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            Name = input.Name.Trim(),
+            Roll = input.Roll.Trim(),
+            Batch = input.Batch.Trim(),
+            Department = input.Department.Trim(),
+            Email = input.Email.Trim(),
+            CodeforcesHandle = input.CodeforcesHandle.Trim(),
+            AtCoderHandle = input.AtCoderHandle.Trim(),
+            WhyYouWantToJoin = input.WhyYouWantToJoin.Trim(),
+            Answer = input.WhyYouWantToJoin.Trim(),
+            CreatedAtUtc = DateTime.UtcNow
+        };
+        requests.Add(item);
+        SaveJoinRequests(joinRequestsFile, requests);
+        return Results.Created($"/api/join-requests/{item.Id}", item);
     }
     catch (Exception ex)
     {
@@ -389,4 +461,31 @@ public class CommitteeInput
     [JsonPropertyName("batch")] public string? Batch { get; set; }
     [JsonPropertyName("role")] public string? Role { get; set; }
     [JsonPropertyName("picture")] public string? Picture { get; set; }
+}
+
+public class JoinRequest
+{
+    [JsonPropertyName("id")] public string Id { get; set; } = string.Empty;
+    [JsonPropertyName("name")] public string Name { get; set; } = string.Empty;
+    [JsonPropertyName("roll")] public string Roll { get; set; } = string.Empty;
+    [JsonPropertyName("batch")] public string Batch { get; set; } = string.Empty;
+    [JsonPropertyName("department")] public string Department { get; set; } = string.Empty;
+    [JsonPropertyName("email")] public string Email { get; set; } = string.Empty;
+    [JsonPropertyName("codeforcesHandle")] public string CodeforcesHandle { get; set; } = string.Empty;
+    [JsonPropertyName("atCoderHandle")] public string AtCoderHandle { get; set; } = string.Empty;
+    [JsonPropertyName("whyYouWantToJoin")] public string WhyYouWantToJoin { get; set; } = string.Empty;
+    [JsonPropertyName("answer")] public string Answer { get; set; } = string.Empty;
+    [JsonPropertyName("createdAtUtc")] public DateTime CreatedAtUtc { get; set; }
+}
+
+public class JoinRequestInput
+{
+    [JsonPropertyName("name")] public string? Name { get; set; }
+    [JsonPropertyName("roll")] public string? Roll { get; set; }
+    [JsonPropertyName("batch")] public string? Batch { get; set; }
+    [JsonPropertyName("department")] public string? Department { get; set; }
+    [JsonPropertyName("email")] public string? Email { get; set; }
+    [JsonPropertyName("codeforcesHandle")] public string? CodeforcesHandle { get; set; }
+    [JsonPropertyName("atCoderHandle")] public string? AtCoderHandle { get; set; }
+    [JsonPropertyName("whyYouWantToJoin")] public string? WhyYouWantToJoin { get; set; }
 }

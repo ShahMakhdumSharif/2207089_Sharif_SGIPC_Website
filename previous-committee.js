@@ -9,8 +9,8 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[c]);
 }
 
-const yearsContainer = document.getElementById('alumniYears');
-const alumniContainer = document.getElementById('alumniContainer');
+const yearsContainer = document.getElementById('previousCommitteeYears');
+const previousCommitteeContainer = document.getElementById('previousCommitteeContainer');
 
 async function checkAdminSession() {
   try {
@@ -18,19 +18,21 @@ async function checkAdminSession() {
     if (!res.ok) { window.isAdminAuthenticated = false; return; }
     const d = await res.json();
     window.isAdminAuthenticated = !!d.authenticated;
+    if (window.updateAdminAuthLinks) window.updateAdminAuthLinks(window.isAdminAuthenticated);
   } catch (err) {
     window.isAdminAuthenticated = false;
+    if (window.updateAdminAuthLinks) window.updateAdminAuthLinks(false);
   }
 }
 
 async function loadYears() {
   try {
-    const res = await fetch(await apiUrl('/api/alumni'));
+    const res = await fetch(await apiUrl('/api/previous-committee'));
     if (!res.ok) throw new Error('Failed to load years');
     const years = await res.json();
     renderYearButtons(years);
   } catch (err) {
-    console.error('alumni years error', err);
+    console.error('previous committee years error', err);
     yearsContainer.innerHTML = '<p style="color:var(--muted)">No archives available.</p>';
   }
 }
@@ -64,13 +66,13 @@ function renderYearButtons(years) {
         e.preventDefault();
         if (!confirm(`Delete archived year ${y}? This cannot be undone.`)) return;
         try {
-          const res = await fetch(await apiUrl(`/api/alumni/${encodeURIComponent(y)}`), { method: 'DELETE', credentials: 'include' });
+          const res = await fetch(await apiUrl(`/api/previous-committee/${encodeURIComponent(y)}`), { method: 'DELETE', credentials: 'include' });
           if (!res.ok) {
             const txt = await res.text();
             throw new Error(txt || 'Delete failed');
           }
           await loadYears();
-          alumniContainer.innerHTML = '';
+          previousCommitteeContainer.innerHTML = '';
         } catch (err) {
           alert('Error deleting year: ' + err.message);
         }
@@ -84,19 +86,19 @@ function renderYearButtons(years) {
 
 async function loadArchive(year) {
   try {
-    alumniContainer.innerHTML = '<p style="color:var(--muted)">Loading...</p>';
-    let res = await fetch(await apiUrl(`/api/alumni/${encodeURIComponent(year)}`));
+    previousCommitteeContainer.innerHTML = '<p style="color:var(--muted)">Loading...</p>';
+    let res = await fetch(await apiUrl(`/api/previous-committee/${encodeURIComponent(year)}`));
     if (!res.ok) {
       // try fallback query endpoint
-      res = await fetch(await apiUrl(`/api/alumniByYear?year=${encodeURIComponent(year)}`), { credentials: 'include' });
+      res = await fetch(await apiUrl(`/api/previous-committee-by-year?year=${encodeURIComponent(year)}`), { credentials: 'include' });
     }
     if (!res.ok) throw new Error('Failed to load archive');
     const members = await res.json();
     
     renderArchive(members, year);
   } catch (err) {
-    console.error('loadArchive err', err);
-    alumniContainer.innerHTML = '<p style="color:var(--muted)">Unable to load archive.</p>';
+    console.error('loadPreviousCommitteeArchive err', err);
+    previousCommitteeContainer.innerHTML = '<p style="color:var(--muted)">Unable to load archive.</p>';
   }
 }
 
@@ -112,14 +114,14 @@ function renderArchive(members, year) {
   });
 
   // Clear container and insert a stable heading (with id for easier DOM inspection)
-  alumniContainer.innerHTML = '';
+  previousCommitteeContainer.innerHTML = '';
   const yearHeading = document.createElement('h3');
   yearHeading.id = 'archiveYearHeading';
   yearHeading.style.marginBottom = '0.6rem';
   yearHeading.style.color = 'var(--accent-strong)';
   yearHeading.style.fontWeight = '700';
   yearHeading.textContent = year ? `The member for the year: ${year}` : 'The member for the year:';
-  alumniContainer.appendChild(yearHeading);
+  previousCommitteeContainer.appendChild(yearHeading);
 
   // If no members, show a clear message so the heading isn't the only element
   if (grouped.size === 0) {
@@ -128,7 +130,7 @@ function renderArchive(members, year) {
     msg.style.color = 'var(--muted)';
     msg.style.marginTop = '0.4rem';
     msg.textContent = 'No members archived for this year.';
-    alumniContainer.appendChild(msg);
+    previousCommitteeContainer.appendChild(msg);
     return;
   }
 
@@ -164,10 +166,10 @@ function renderArchive(members, year) {
       card.appendChild(meta);
       grid.appendChild(card);
       // process photo and initials
-      processCardPhotoAlumni(card, m);
+      processCardPhotoPreviousCommittee(card, m);
     });
     g.appendChild(grid);
-    alumniContainer.appendChild(g);
+    previousCommitteeContainer.appendChild(g);
   });
 }
 
@@ -210,7 +212,7 @@ try {
   // ignore
 }
 
-function processCardPhotoAlumni(card, member) {
+function processCardPhotoPreviousCommittee(card, member) {
   try {
     const photoWrap = card.querySelector('.photo-wrap');
     if (!photoWrap) return;
@@ -257,6 +259,6 @@ function processCardPhotoAlumni(card, member) {
     };
     probe.src = photoPath;
   } catch (err) {
-    console.error('processCardPhotoAlumni error', err);
+    console.error('processCardPhotoPreviousCommittee error', err);
   }
 }

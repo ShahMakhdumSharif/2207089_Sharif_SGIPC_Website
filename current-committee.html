@@ -34,8 +34,8 @@
         <a href="/#achievements">Achievements</a>
         <a href="/#events">Events</a>
         <a href="current-committee.html">Current Committee</a>
-        <a href="alumni.html">Previous Committee</a>
-        <a href="login.html">Admin Login</a>
+        <a href="previous-committee.html">Previous Committee</a>
+        <a href="login.html" data-admin-auth-link="true">Admin Login</a>
         <a href="/#join">Join</a>
       </nav>
     </header>
@@ -44,7 +44,6 @@
       <div style="padding: 0 0 1rem; margin-bottom: 1rem;">
         <div id="adminMemberPrompt" style="display:none;background:var(--surface-soft);padding:1rem;border-radius:4px;text-align:center;margin-bottom:1rem;">
           <p style="margin-bottom:0.5rem;">Logged in as: <strong id="memberAdminUser"></strong></p>
-          <button class="btn btn-ghost" id="memberLogoutBtn" type="button" style="font-size:0.9rem;">Logout</button>
         </div>
         <form id="addMemberForm" class="add-event-form" style="display:none;max-width:100%;">
           <h4 style="margin-bottom:0.5rem;">Add New Committee Member</h4>
@@ -59,7 +58,7 @@
           </div>
         </form>
           <div style="margin-top:.5rem;">
-            <button class="btn btn-ghost" id="archiveToAlumniBtn" style="display:none;">Add Committee to Previous Committee</button>
+            <button class="btn btn-ghost" id="archiveToPreviousCommitteeBtn" style="display:none;">Add Committee to Previous Committee</button>
           </div>
       </div>
       <section class="cards" id="committeeContainer" aria-label="Committee members">
@@ -73,8 +72,8 @@
           <a href="/#achievements">Achievements</a>
           <a href="/#events">Events</a>
           <a href="current-committee.html">Current Committee</a>
-          <a href="alumni.html">Previous Committee</a>
-          <a href="login.html">Admin Login</a>
+          <a href="previous-committee.html">Previous Committee</a>
+          <a href="login.html" data-admin-auth-link="true">Admin Login</a>
           <a href="/#join">Join</a>
         </nav>
         <p class="footer-address">

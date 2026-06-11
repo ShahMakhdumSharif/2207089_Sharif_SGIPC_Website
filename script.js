@@ -6,6 +6,8 @@ const revealNodes = document.querySelectorAll(".reveal");
 const bannerImage = document.getElementById("bannerImage");
 const bannerPrevBtn = document.getElementById("bannerPrevBtn");
 const bannerNextBtn = document.getElementById("bannerNextBtn");
+const teamsFormedBtn = document.getElementById("teamsFormedBtn");
+const teamsFormedMessage = document.getElementById("teamsFormedMessage");
 
 if (menuBtn && siteNav) {
   menuBtn.addEventListener("click", () => {
@@ -71,6 +73,17 @@ if (bannerPrevBtn && bannerNextBtn && bannerImage) {
       updateBannerSlide();
     }, 5000);
   }
+}
+
+if (teamsFormedBtn && teamsFormedMessage) {
+  teamsFormedBtn.addEventListener("click", () => {
+    const shouldShow = teamsFormedMessage.hidden;
+    teamsFormedMessage.hidden = !shouldShow;
+    teamsFormedBtn.setAttribute("aria-expanded", String(shouldShow));
+    if (shouldShow) {
+      teamsFormedMessage.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  });
 }
 
 const counterObserver = new IntersectionObserver(
@@ -144,13 +157,56 @@ const adminLoginForm = document.getElementById('adminLoginForm');
 const adminCancelBtn = document.getElementById('adminCancelBtn');
 const adminProfile = document.getElementById('adminProfile');
 const adminUsername = document.getElementById('adminUsername');
-const adminLogoutNavBtn = document.getElementById('adminLogoutNavBtn');
 const loginModal = document.getElementById('loginModal');
 const goHomeBtn = document.getElementById('goHomeBtn');
 const adminAddEventPrompt = document.getElementById('adminAddEventPrompt');
 const eventAdminUser = document.getElementById('eventAdminUser');
-const eventLogoutBtn = document.getElementById('eventLogoutBtn');
+const joinCommunityBtn = document.getElementById('joinCommunityBtn');
+const joinFormPanel = document.getElementById('joinFormPanel');
+const joinApplicantCard = document.getElementById('joinApplicantCard');
+const joinForm = document.getElementById('joinForm');
+const joinFormStatus = document.getElementById('joinFormStatus');
+const joinAdminCard = document.getElementById('joinAdminCard');
+const joinAdminUser = document.getElementById('joinAdminUser');
+const joinRequestsList = document.getElementById('joinRequestsList');
+const joinName = document.getElementById('joinName');
+const joinRoll = document.getElementById('joinRoll');
+const joinBatch = document.getElementById('joinBatch');
+const joinDepartment = document.getElementById('joinDepartment');
+const joinEmail = document.getElementById('joinEmail');
+const joinCodeforces = document.getElementById('joinCodeforces');
+const joinAtCoder = document.getElementById('joinAtCoder');
+const joinReason = document.getElementById('joinReason');
 let isAdminAuthenticated = false;
+
+function updateAdminAuthLinks(authed) {
+  document.querySelectorAll('[data-admin-auth-link]').forEach((link) => {
+    if (!link.dataset.adminLoginHref) {
+      link.dataset.adminLoginHref = link.getAttribute('href') || 'login.html';
+    }
+
+    if (authed) {
+      link.textContent = 'Logout';
+      link.setAttribute('href', '#');
+      link.dataset.adminState = 'logout';
+    } else {
+      link.textContent = 'Admin Login';
+      link.setAttribute('href', link.dataset.adminLoginHref || 'login.html');
+      link.dataset.adminState = 'login';
+    }
+  });
+}
+
+async function performAdminLogout() {
+  try {
+    await fetch(apiUrl('/api/admin/logout'), { method: 'POST', credentials: 'include' });
+  } catch {}
+  localStorage.removeItem('adminUsername');
+  window.location.reload();
+}
+
+window.updateAdminAuthLinks = updateAdminAuthLinks;
+window.performAdminLogout = performAdminLogout;
 
 async function fetchAndRenderEvents() {
   try {
@@ -201,9 +257,139 @@ function renderEvents(upcoming, past) {
   });
 }
 
+async function fetchAndRenderJoinRequests() {
+  if (!joinRequestsList || !joinAdminCard) return;
+
+  if (!isAdminAuthenticated) {
+    joinAdminCard.hidden = true;
+    joinRequestsList.innerHTML = '<p class="join-empty">No join requests yet.</p>';
+    return;
+  }
+
+  try {
+    const res = await fetch(apiUrl('/api/join-requests'), { credentials: 'include' });
+    if (!res.ok) throw new Error('Failed to fetch join requests');
+    const requests = await res.json();
+    renderJoinRequests(Array.isArray(requests) ? requests : []);
+  } catch (err) {
+    console.error('join requests fetch error', err);
+    joinRequestsList.innerHTML = '<p class="join-empty">Unable to load join requests.</p>';
+  }
+}
+
+function renderJoinRequests(requests) {
+  if (!joinAdminCard || !joinRequestsList) return;
+
+  joinAdminCard.hidden = false;
+  if (!requests.length) {
+    joinRequestsList.innerHTML = '<p class="join-empty">No join requests yet.</p>';
+    return;
+  }
+
+  joinRequestsList.innerHTML = requests.map((request) => {
+    const submittedAt = request.createdAtUtc ? formatLocal(request.createdAtUtc) : 'Unknown time';
+    const applicantName = request.name || 'Unknown applicant';
+    const applicantRoll = request.roll || '';
+    const applicantBatch = request.batch || '';
+    const applicantDepartment = request.department || '';
+    const applicantEmail = request.email || '';
+    const codeforcesHandle = request.codeforcesHandle || '';
+    const atCoderHandle = request.atCoderHandle || '';
+    const motivation = request.whyYouWantToJoin || request.answer || '';
+    return `
+      <article class="join-request-item">
+        <strong>${escapeHtml(applicantName)}</strong>
+        <div class="join-request-meta">Roll: ${escapeHtml(applicantRoll)} | Batch: ${escapeHtml(applicantBatch)} | Dept: ${escapeHtml(applicantDepartment)}</div>
+        <div class="join-request-meta">Email: ${escapeHtml(applicantEmail)}</div>
+        <div class="join-request-meta">Codeforces: ${escapeHtml(codeforcesHandle)} | AtCoder: ${escapeHtml(atCoderHandle)}</div>
+        <div class="join-request-answer">${escapeHtml(motivation)}</div>
+        <div class="join-request-meta">Submitted: ${escapeHtml(submittedAt)}</div>
+      </article>
+    `;
+  }).join('');
+}
+
 function escapeHtml(s){
   if(!s) return '';
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[c]);
+}
+
+if (joinCommunityBtn && joinFormPanel) {
+  joinCommunityBtn.addEventListener('click', () => {
+    if (isAdminAuthenticated) {
+      return;
+    }
+
+    const willOpen = joinFormPanel.hidden;
+    joinFormPanel.hidden = !willOpen;
+    joinCommunityBtn.setAttribute('aria-expanded', String(willOpen));
+
+    if (willOpen) {
+      joinFormPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (joinName) {
+        setTimeout(() => joinName.focus(), 150);
+      }
+    }
+  });
+}
+
+if (joinForm) {
+  joinForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const application = {
+      name: joinName ? joinName.value.trim() : '',
+      roll: joinRoll ? joinRoll.value.trim() : '',
+      batch: joinBatch ? joinBatch.value.trim() : '',
+      department: joinDepartment ? joinDepartment.value.trim() : '',
+      email: joinEmail ? joinEmail.value.trim() : '',
+      codeforcesHandle: joinCodeforces ? joinCodeforces.value.trim() : '',
+      atCoderHandle: joinAtCoder ? joinAtCoder.value.trim() : '',
+      whyYouWantToJoin: joinReason ? joinReason.value.trim() : ''
+    };
+
+    if (!application.name || !application.roll || !application.batch || !application.department || !application.email || !application.codeforcesHandle || !application.atCoderHandle || !application.whyYouWantToJoin) {
+      if (joinFormStatus) joinFormStatus.textContent = 'Please fill in all fields before submitting.';
+      return;
+    }
+
+    if (joinFormStatus) joinFormStatus.textContent = 'Submitting...';
+
+    try {
+      const response = await fetch(apiUrl('/api/join-requests'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(application)
+      });
+
+      if (!response.ok) {
+        let errorMessage = `Failed to submit request (${response.status})`;
+        try {
+          const responseText = await response.text();
+          if (responseText) {
+            try {
+              const payload = JSON.parse(responseText);
+              errorMessage = payload?.error || responseText || errorMessage;
+            } catch {
+              errorMessage = responseText;
+            }
+          }
+        } catch {
+          // Keep default message.
+        }
+        throw new Error(errorMessage);
+      }
+
+      joinForm.reset();
+      if (joinFormStatus) joinFormStatus.textContent = 'Thanks! Your response has been submitted.';
+      if (isAdminAuthenticated) {
+        await fetchAndRenderJoinRequests();
+      }
+    } catch (err) {
+      console.error('join submit error', err);
+      if (joinFormStatus) joinFormStatus.textContent = err instanceof Error ? err.message : 'Could not submit right now. Please try again.';
+    }
+  });
 }
 
 if (addEventForm) {
@@ -239,7 +425,7 @@ if (addEventForm) {
 // Admin auth handling
 async function checkAdmin() {
   try {
-    const res = await fetch(apiUrl('/api/admin/session'));
+    const res = await fetch(apiUrl('/api/admin/session'), { credentials: 'include' });
     if (!res.ok) throw new Error('session fetch failed');
     const data = await res.json();
     const authed = !!data.authenticated;
@@ -257,13 +443,36 @@ async function checkAdmin() {
         adminAddEventPrompt.style.display = 'none';
       }
     }
+
+    if (joinAdminCard && joinAdminUser) {
+      if (authed) {
+        joinAdminUser.textContent = localStorage.getItem('adminUsername') || 'Admin';
+        joinAdminCard.hidden = false;
+        if (joinFormPanel && joinApplicantCard && joinCommunityBtn) {
+          joinFormPanel.hidden = false;
+          joinApplicantCard.hidden = true;
+          joinCommunityBtn.setAttribute('aria-expanded', 'false');
+        }
+      } else {
+        joinAdminCard.hidden = true;
+        if (joinApplicantCard) joinApplicantCard.hidden = false;
+        if (joinFormPanel) joinFormPanel.hidden = true;
+      }
+    }
+
+    updateAdminAuthLinks(authed);
     
     // Re-render events to show/hide delete buttons
     fetchAndRenderEvents();
+    await fetchAndRenderJoinRequests();
   } catch (e) {
     isAdminAuthenticated = false;
     if (addEventForm) addEventForm.style.display = 'none';
     if (adminAddEventPrompt) adminAddEventPrompt.style.display = 'none';
+    if (joinAdminCard) joinAdminCard.hidden = true;
+    if (joinApplicantCard) joinApplicantCard.hidden = false;
+    if (joinFormPanel) joinFormPanel.hidden = true;
+    updateAdminAuthLinks(false);
   }
 }
 
@@ -283,6 +492,7 @@ if (adminLoginForm) {
       adminLoginForm.style.display = 'none';
       if (adminProfile) adminProfile.style.display = '';
       if (adminUsername) adminUsername.textContent = u;
+      updateAdminAuthLinks(true);
     } catch (err) {
       console.error(err);
       alert('Login failed');
@@ -310,45 +520,14 @@ if (goHomeBtn) {
   });
 }
 
-// Logout from profile in modal
-if (adminLogoutNavBtn) {
-  adminLogoutNavBtn.addEventListener('click', async () => {
-    try {
-      await fetch(apiUrl('/api/admin/logout'), { method: 'POST' });
-    } catch {}
-    localStorage.removeItem('adminUsername');
-    adminLoginForm.style.display = '';
-    if (adminProfile) adminProfile.style.display = 'none';
-    adminLoginForm.reset();
-    if (loginModal) loginModal.style.display = 'none';
-    checkAdmin();
-  });
-}
+// Handle the shared header/footer Admin Login link.
+document.addEventListener('click', async (e) => {
+  const authLink = e.target.closest('[data-admin-auth-link]');
+  if (!authLink) return;
 
-// Logout from events section
-if (eventLogoutBtn) {
-  eventLogoutBtn.addEventListener('click', async () => {
-    try {
-      await fetch(apiUrl('/api/admin/logout'), { method: 'POST' });
-    } catch {}
-    localStorage.removeItem('adminUsername');
-    checkAdmin();
-  });
-}
-
-// Show login modal when clicking Login in header
-document.addEventListener('click', (e) => {
-  if (e.target.tagName === 'A' && e.target.getAttribute('href') === '#admin-login') {
+  if (authLink.dataset.adminState === 'logout') {
     e.preventDefault();
-    console.log('Login link clicked, loginModal:', loginModal);
-    if (loginModal) {
-      loginModal.style.display = 'flex !important';
-      loginModal.style.visibility = 'visible';
-      console.log('Modal display set to flex');
-    } else {
-      console.error('loginModal element not found');
-    }
-    checkAdmin();
+    await performAdminLogout();
   }
 });
 

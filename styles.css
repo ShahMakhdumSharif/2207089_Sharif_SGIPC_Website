@@ -336,22 +336,39 @@ main {
   border-radius: 0.9rem;
   padding: 1rem;
   box-shadow: 0 12px 24px rgba(98, 28, 126, 0.08);
-}
-
-.stat-card-link {
-  display: block;
-  text-decoration: none;
-  color: inherit;
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
     border-color 0.2s ease;
 }
 
-.stat-card-link:hover {
+.stat-card:hover {
   transform: translateY(-2px);
   border-color: var(--accent);
   box-shadow: 0 14px 28px rgba(98, 28, 126, 0.15);
+}
+
+.stat-card-button {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.teams-formed-message {
+  margin-top: 0.75rem;
+  border-left: 3px solid var(--accent);
+  padding: 0.8rem 1rem;
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: 0.75rem;
+  color: var(--text);
+}
+
+.teams-formed-message[hidden] {
+  display: none;
 }
 
 .stat-value {
@@ -538,6 +555,147 @@ main {
   gap: 0.75rem;
 }
 
+.join-panel {
+  margin-top: 1.2rem;
+  display: grid;
+  gap: 1rem;
+  text-align: left;
+}
+
+.join-panel-card {
+  border: 1px solid var(--stroke);
+  border-radius: 1rem;
+  padding: 1.1rem;
+  background: linear-gradient(160deg, #ffffff 0%, #f7ebfd 100%);
+  box-shadow: 0 14px 28px rgba(98, 28, 126, 0.06);
+}
+
+.join-panel-card h4 {
+  margin-top: 0.15rem;
+  font-size: 1.2rem;
+  color: var(--accent-strong);
+}
+
+.join-panel-copy {
+  margin-top: 0.45rem;
+  color: var(--muted);
+}
+
+.join-form {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.join-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.join-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.join-label {
+  font-weight: 600;
+  color: var(--accent-strong);
+}
+
+.join-input,
+.join-textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 140px;
+  border: 1px solid var(--stroke);
+  border-radius: 0.85rem;
+  padding: 0.9rem 1rem;
+  font: inherit;
+  color: var(--text);
+  background: #fff;
+}
+
+.join-input {
+  min-height: unset;
+  resize: none;
+  padding: 0.9rem 1rem;
+}
+
+.join-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(139, 46, 173, 0.14);
+}
+
+.join-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(139, 46, 173, 0.14);
+}
+
+.join-form-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.join-status {
+  min-height: 1.2rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.join-admin-card[hidden],
+.join-panel[hidden] {
+  display: none;
+}
+
+.join-admin-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.join-admin-meta {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.join-requests-list {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.join-request-item {
+  border: 1px solid rgba(222, 202, 236, 0.9);
+  border-radius: 0.85rem;
+  padding: 0.9rem 1rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.join-request-item strong {
+  color: var(--accent-strong);
+}
+
+.join-request-answer {
+  margin-top: 0.35rem;
+  white-space: pre-wrap;
+}
+
+.join-request-meta {
+  margin-top: 0.3rem;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.join-empty {
+  color: var(--muted);
+}
+
 .site-footer {
   margin-top: 2rem;
   padding: 1.2rem 0 1.8rem;
@@ -560,6 +718,10 @@ main {
 
   .site-nav {
     gap: 0.7rem;
+  }
+
+  .join-field-grid {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -108,7 +108,7 @@ function processCardPhoto(card, member) {
 }
 
 // ===== Committee Member API integration =====
-let addMemberForm, adminMemberPrompt, memberAdminUser, memberLogoutBtn, committeeContainer, archiveToAlumniBtn;
+let addMemberForm, adminMemberPrompt, memberAdminUser, committeeContainer, archiveToPreviousCommitteeBtn;
 let isMemberAdminAuthenticated = false;
 
 function escapeHtml(s) {
@@ -126,9 +126,8 @@ function initializeUIElements() {
   addMemberForm = document.getElementById('addMemberForm');
   adminMemberPrompt = document.getElementById('adminMemberPrompt');
   memberAdminUser = document.getElementById('memberAdminUser');
-  memberLogoutBtn = document.getElementById('memberLogoutBtn');
   committeeContainer = document.getElementById('committeeContainer');
-  archiveToAlumniBtn = document.getElementById('archiveToAlumniBtn');
+  archiveToPreviousCommitteeBtn = document.getElementById('archiveToPreviousCommitteeBtn');
 }
 
 async function fetchAndRenderMembers() {
@@ -237,8 +236,9 @@ async function checkMemberAdmin() {
 
     if (addMemberForm) addMemberForm.style.display = isMemberAdminAuthenticated ? 'block' : 'none';
     if (adminMemberPrompt) adminMemberPrompt.style.display = isMemberAdminAuthenticated ? 'block' : 'none';
-    if (archiveToAlumniBtn) archiveToAlumniBtn.style.display = isMemberAdminAuthenticated ? 'inline-block' : 'none';
+    if (archiveToPreviousCommitteeBtn) archiveToPreviousCommitteeBtn.style.display = isMemberAdminAuthenticated ? 'inline-block' : 'none';
     if (memberAdminUser) memberAdminUser.textContent = localStorage.getItem('adminUsername') || 'Admin';
+    if (window.updateAdminAuthLinks) window.updateAdminAuthLinks(isMemberAdminAuthenticated);
 
     await fetchAndRenderMembers();
   } catch (e) {
@@ -246,7 +246,8 @@ async function checkMemberAdmin() {
     isMemberAdminAuthenticated = false;
     if (addMemberForm) addMemberForm.style.display = 'none';
     if (adminMemberPrompt) adminMemberPrompt.style.display = 'none';
-    if (archiveToAlumniBtn) archiveToAlumniBtn.style.display = 'none';
+    if (archiveToPreviousCommitteeBtn) archiveToPreviousCommitteeBtn.style.display = 'none';
+    if (window.updateAdminAuthLinks) window.updateAdminAuthLinks(false);
     await fetchAndRenderMembers();
   }
 }
@@ -295,19 +296,8 @@ function setupFormHandlers() {
     });
   }
 
-  if (memberLogoutBtn) {
-    memberLogoutBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      try {
-        await fetch(apiUrl('/api/admin/logout'), { method: 'POST', credentials: 'include' });
-      } catch {}
-      localStorage.removeItem('adminUsername');
-      await checkMemberAdmin();
-    });
-  }
-
-  if (archiveToAlumniBtn) {
-    archiveToAlumniBtn.addEventListener('click', async (e) => {
+  if (archiveToPreviousCommitteeBtn) {
+    archiveToPreviousCommitteeBtn.addEventListener('click', async (e) => {
       e.preventDefault();
       try {
         const membersRes = await fetch(apiUrl('/api/committee'), { credentials: 'include' });
@@ -333,7 +323,7 @@ function setupFormHandlers() {
         }
       }
       try {
-        const res = await fetch(apiUrl('/api/alumni/archive'), {
+        const res = await fetch(apiUrl('/api/previous-committee/archive'), {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -345,7 +335,7 @@ function setupFormHandlers() {
         }
         const data = await res.json();
         alert(`Archived ${data.count || 0} members under ${data.year}`);
-        // Signal the alumni page to load the new year when it is opened.
+        // Signal the previous committee page to load the new year when it is opened.
         try {
           localStorage.setItem('newArchivedYear', data.year);
         } catch (err) {
@@ -357,4 +347,3 @@ function setupFormHandlers() {
     });
   }
 }
-
