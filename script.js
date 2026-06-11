@@ -3,6 +3,9 @@ const siteNav = document.getElementById("siteNav");
 const yearNode = document.getElementById("year");
 const statNodes = document.querySelectorAll(".stat-value");
 const revealNodes = document.querySelectorAll(".reveal");
+const bannerImage = document.getElementById("bannerImage");
+const bannerPrevBtn = document.getElementById("bannerPrevBtn");
+const bannerNextBtn = document.getElementById("bannerNextBtn");
 
 if (menuBtn && siteNav) {
   menuBtn.addEventListener("click", () => {
@@ -16,6 +19,58 @@ if (menuBtn && siteNav) {
 
 if (yearNode) {
   yearNode.textContent = new Date().getFullYear();
+}
+
+const bannerSlides = [
+  {
+    src: "assets/banner/b1.png",
+    alt: "SGIPC featured banner 1",
+  },
+  {
+    src: "assets/banner/b2.jpg",
+    alt: "SGIPC featured banner 2",
+  },
+  {
+    src: "assets/banner/b3.jpg",
+    alt: "SGIPC featured banner 3",
+  },
+  {
+    src: "assets/banner/b4.jpg",
+    alt: "SGIPC featured banner 4",
+  },
+];
+
+let bannerSlideIndex = 0;
+
+function updateBannerSlide() {
+  if (!bannerImage) return;
+
+  const slide = bannerSlides[bannerSlideIndex];
+  bannerImage.src = slide.src;
+  bannerImage.alt = slide.alt;
+}
+
+if (bannerPrevBtn && bannerNextBtn && bannerImage) {
+  bannerPrevBtn.addEventListener("click", () => {
+    if (bannerSlides.length < 2) return;
+    bannerSlideIndex = (bannerSlideIndex - 1 + bannerSlides.length) % bannerSlides.length;
+    updateBannerSlide();
+  });
+
+  bannerNextBtn.addEventListener("click", () => {
+    if (bannerSlides.length < 2) return;
+    bannerSlideIndex = (bannerSlideIndex + 1) % bannerSlides.length;
+    updateBannerSlide();
+  });
+
+  updateBannerSlide();
+
+  if (bannerSlides.length > 1) {
+    setInterval(() => {
+      bannerSlideIndex = (bannerSlideIndex + 1) % bannerSlides.length;
+      updateBannerSlide();
+    }, 5000);
+  }
 }
 
 const counterObserver = new IntersectionObserver(
