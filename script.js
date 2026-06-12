@@ -9,6 +9,7 @@ const bannerNextBtn = document.getElementById("bannerNextBtn");
 const teamsFormedBtn = document.getElementById("teamsFormedBtn");
 const teamsFormedMessage = document.getElementById("teamsFormedMessage");
 
+// Ei block mobile menu open/close ebong nav link click e menu close kore.
 if (menuBtn && siteNav) {
   menuBtn.addEventListener("click", () => {
     siteNav.classList.toggle("open");
@@ -19,10 +20,12 @@ if (menuBtn && siteNav) {
   });
 }
 
+// Ei block footer e current year show kore.
 if (yearNode) {
   yearNode.textContent = new Date().getFullYear();
 }
 
+// Ei array home page banner slideshow er image data rakhe.
 const bannerSlides = [
   {
     src: "assets/banner/b1.png",
@@ -32,18 +35,11 @@ const bannerSlides = [
     src: "assets/banner/b2.jpg",
     alt: "SGIPC featured banner 2",
   },
-  {
-    src: "assets/banner/b3.jpg",
-    alt: "SGIPC featured banner 3",
-  },
-  {
-    src: "assets/banner/b4.jpg",
-    alt: "SGIPC featured banner 4",
-  },
 ];
 
 let bannerSlideIndex = 0;
 
+// Ei function current banner slide image update kore.
 function updateBannerSlide() {
   if (!bannerImage) return;
 
@@ -52,6 +48,7 @@ function updateBannerSlide() {
   bannerImage.alt = slide.alt;
 }
 
+// Ei block banner previous/next button ebong auto-slide control kore.
 if (bannerPrevBtn && bannerNextBtn && bannerImage) {
   bannerPrevBtn.addEventListener("click", () => {
     if (bannerSlides.length < 2) return;
@@ -75,6 +72,7 @@ if (bannerPrevBtn && bannerNextBtn && bannerImage) {
   }
 }
 
+// Ei block 15 teams card click korle sudhu oi card er details show/hide kore.
 if (teamsFormedBtn && teamsFormedMessage) {
   teamsFormedBtn.addEventListener("click", () => {
     const shouldShow = teamsFormedMessage.hidden;
@@ -86,6 +84,7 @@ if (teamsFormedBtn && teamsFormedMessage) {
   });
 }
 
+// Ei observer stat number gulo viewport e ashle count animation chalaye.
 const counterObserver = new IntersectionObserver(
   (entries, observer) => {
     entries.forEach((entry) => {
@@ -119,6 +118,7 @@ const counterObserver = new IntersectionObserver(
 
 statNodes.forEach((node) => counterObserver.observe(node));
 
+// Ei observer reveal class element gulo scroll e visible animation dey.
 const revealObserver = new IntersectionObserver(
   (entries) => {
     entries.forEach((entry) => {
@@ -132,8 +132,7 @@ const revealObserver = new IntersectionObserver(
 
 revealNodes.forEach((node) => revealObserver.observe(node));
 
-// ===== Events API integration =====
-// Determine API base: when opened as file:// use localhost:5000, otherwise use same origin.
+// Ei block events/admin/join API integration er jonno base URL set kore.
 let API_BASE = '';
 try {
   if (location.protocol === 'file:') API_BASE = 'http://localhost:5000';
@@ -143,13 +142,13 @@ try {
 }
 
 function apiUrl(path) {
-  // path should start with '/'
+  // Path e slash na thakle slash add kore full API URL banay.
   if (!path.startsWith('/')) path = '/' + path;
   if (!API_BASE || API_BASE === 'null') return path;
   return API_BASE.replace(/\/$/, '') + path;
 }
 
-// DOM elements
+// Ei block page er frequently used DOM element reference dhore.
 const upcomingContainer = document.getElementById('upcomingEvents');
 const pastContainer = document.getElementById('pastEvents');
 const addEventForm = document.getElementById('addEventForm');
@@ -179,6 +178,7 @@ const joinAtCoder = document.getElementById('joinAtCoder');
 const joinReason = document.getElementById('joinReason');
 let isAdminAuthenticated = false;
 
+// Ei function header/footer er Admin Login link ke login/logout state onujayi update kore.
 function updateAdminAuthLinks(authed) {
   document.querySelectorAll('[data-admin-auth-link]').forEach((link) => {
     if (!link.dataset.adminLoginHref) {
@@ -197,6 +197,7 @@ function updateAdminAuthLinks(authed) {
   });
 }
 
+// Ei function admin logout API call kore local state clean kore page reload kore.
 async function performAdminLogout() {
   try {
     await fetch(apiUrl('/api/admin/logout'), { method: 'POST', credentials: 'include' });
@@ -208,6 +209,7 @@ async function performAdminLogout() {
 window.updateAdminAuthLinks = updateAdminAuthLinks;
 window.performAdminLogout = performAdminLogout;
 
+// Ei function database theke event ene upcoming/past list render kore.
 async function fetchAndRenderEvents() {
   try {
     const res = await fetch(apiUrl('/api/events'));
@@ -219,6 +221,7 @@ async function fetchAndRenderEvents() {
   }
 }
 
+// Ei function UTC/local datetime ke readable browser time e convert kore.
 function formatLocal(dtString) {
   try {
     const d = new Date(dtString);
@@ -228,6 +231,7 @@ function formatLocal(dtString) {
   }
 }
 
+// Ei function upcoming ebong past event HTML render kore.
 function renderEvents(upcoming, past) {
   if (upcomingContainer) {
     upcomingContainer.innerHTML = upcoming.length ? upcoming.map(ev => {
@@ -240,7 +244,7 @@ function renderEvents(upcoming, past) {
     }).join('\n') : '<p class="event-meta">No past events.</p>';
   }
   
-  // Attach delete event listeners
+  // Ei block admin delete button gulote click listener attach kore.
   document.querySelectorAll('.btn-delete').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       if (!confirm('Are you sure you want to delete this event?')) return;
@@ -257,6 +261,7 @@ function renderEvents(upcoming, past) {
   });
 }
 
+// Ei function admin hole join request database theke ene render kore.
 async function fetchAndRenderJoinRequests() {
   if (!joinRequestsList || !joinAdminCard) return;
 
@@ -309,11 +314,13 @@ function renderJoinRequests(requests) {
   }).join('');
 }
 
+// Ei function user input/rendered text ke HTML injection theke safe kore.
 function escapeHtml(s){
   if(!s) return '';
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[c]);
 }
 
+// Ei block Join the Community button click e applicant form show/hide kore.
 if (joinCommunityBtn && joinFormPanel) {
   joinCommunityBtn.addEventListener('click', () => {
     if (isAdminAuthenticated) {
@@ -333,6 +340,7 @@ if (joinCommunityBtn && joinFormPanel) {
   });
 }
 
+// Ei block join form submit kore database e request save kore.
 if (joinForm) {
   joinForm.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -375,7 +383,7 @@ if (joinForm) {
             }
           }
         } catch {
-          // Keep default message.
+          // Error parse na hole default message thakbe.
         }
         throw new Error(errorMessage);
       }
@@ -392,6 +400,7 @@ if (joinForm) {
   });
 }
 
+// Ei block admin event form submit korle notun event database e add kore.
 if (addEventForm) {
   addEventForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -401,7 +410,7 @@ if (addEventForm) {
     const desc = document.getElementById('evtDesc').value.trim();
     if (!title || !dt) return alert('Title and date/time required');
 
-    // Convert local datetime-local value to ISO with timezone
+    // Local datetime-local value ke ISO time e convert kora hocche.
     const local = new Date(dt);
     const iso = local.toISOString();
 
@@ -412,7 +421,7 @@ if (addEventForm) {
         body: JSON.stringify({ title, description: desc, location, dateTime: iso })
       });
       if (!res.ok) throw new Error('Failed to add');
-      // clear form
+      // Add successful hole form clear hoy ebong event list refresh hoy.
       addEventForm.reset();
       fetchAndRenderEvents();
     } catch (err) {
@@ -422,7 +431,7 @@ if (addEventForm) {
   });
 }
 
-// Admin auth handling
+// Ei function admin session check kore UI er admin-only part show/hide kore.
 async function checkAdmin() {
   try {
     const res = await fetch(apiUrl('/api/admin/session'), { credentials: 'include' });
@@ -431,10 +440,10 @@ async function checkAdmin() {
     const authed = !!data.authenticated;
     isAdminAuthenticated = authed;
     
-    // Update add-event form visibility
+    // Admin hole add-event form visible hoy.
     if (addEventForm) addEventForm.style.display = authed ? '' : 'none';
     
-    // Update admin prompt in events section
+    // Events section e logged-in admin name show/hide kora hoy.
     if (adminAddEventPrompt && eventAdminUser) {
       if (authed) {
         adminAddEventPrompt.style.display = '';
@@ -462,7 +471,7 @@ async function checkAdmin() {
 
     updateAdminAuthLinks(authed);
     
-    // Re-render events to show/hide delete buttons
+    // Admin state change hole delete button show/hide korte list refresh hoy.
     fetchAndRenderEvents();
     await fetchAndRenderJoinRequests();
   } catch (e) {
@@ -476,7 +485,7 @@ async function checkAdmin() {
   }
 }
 
-// Login form submit
+// Ei block login page er admin form submit handle kore.
 if (adminLoginForm) {
   adminLoginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -487,7 +496,7 @@ if (adminLoginForm) {
         method: 'POST', headers: {'Content-Type':'application/json'}, credentials: 'include', body: JSON.stringify({username:u,password:p})
       });
       if (!r.ok) throw new Error('login failed');
-      // Store username and show profile
+      // Login successful hole username store hoy ebong profile section show hoy.
       localStorage.setItem('adminUsername', u);
       adminLoginForm.style.display = 'none';
       if (adminProfile) adminProfile.style.display = '';
@@ -500,7 +509,7 @@ if (adminLoginForm) {
   });
 }
 
-// Cancel button
+// Ei block login modal cancel button handle kore.
 if (adminCancelBtn) {
   adminCancelBtn.addEventListener('click', () => {
     if (loginModal) loginModal.style.display = 'none';
@@ -510,17 +519,17 @@ if (adminCancelBtn) {
   });
 }
 
-// Go home button
+// Ei block login page theke home events section e fire jawar kaj kore.
 if (goHomeBtn) {
   goHomeBtn.addEventListener('click', () => {
     if (loginModal) loginModal.style.display = 'none';
     checkAdmin();
-    // Scroll to events section
+    // Home page er events section e smooth scroll kore.
     document.getElementById('events').scrollIntoView({ behavior: 'smooth' });
   });
 }
 
-// Handle the shared header/footer Admin Login link.
+// Ei block shared header/footer Admin Login link ke logout link hisebe handle kore.
 document.addEventListener('click', async (e) => {
   const authLink = e.target.closest('[data-admin-auth-link]');
   if (!authLink) return;
@@ -531,10 +540,10 @@ document.addEventListener('click', async (e) => {
   }
 });
 
-// Check auth on load and periodically
+// Ei block page load er por ebong proti 60 second e admin session check kore.
 checkAdmin();
-setInterval(checkAdmin, 60 * 1000); // Re-check every 60s
+setInterval(checkAdmin, 60 * 1000);
 
-// Initial load and periodic refresh
+// Ei block event list first load kore ebong periodically refresh kore.
 fetchAndRenderEvents();
 setInterval(fetchAndRenderEvents, 30 * 1000);

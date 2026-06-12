@@ -1,17 +1,21 @@
+// Ei function API path ke current server origin er sathe full URL banay.
 function apiUrl(path) {
   if (!path) return '/';
   if (!path.startsWith('/')) path = '/' + path;
   return window.location.origin + path;
 }
 
+// Ei function rendered text ke HTML injection theke safe kore.
 function escapeHtml(s) {
   if (!s) return '';
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[c]);
 }
 
+// Ei block previous committee page er main container reference dhore.
 const yearsContainer = document.getElementById('previousCommitteeYears');
 const previousCommitteeContainer = document.getElementById('previousCommitteeContainer');
 
+// Ei function admin session check kore delete-year button show kora jabe kina set kore.
 async function checkAdminSession() {
   try {
     const res = await fetch(await apiUrl('/api/admin/session'), { credentials: 'include' });
@@ -25,6 +29,7 @@ async function checkAdminSession() {
   }
 }
 
+// Ei function archived year list database theke load kore.
 async function loadYears() {
   try {
     const res = await fetch(await apiUrl('/api/previous-committee'));
@@ -37,6 +42,7 @@ async function loadYears() {
   }
 }
 
+// Ei function archived year button list render kore.
 function renderYearButtons(years) {
   yearsContainer.innerHTML = '';
   if (!years || years.length === 0) {
@@ -84,12 +90,13 @@ function renderYearButtons(years) {
   });
 }
 
+// Ei function selected year er archived committee load kore.
 async function loadArchive(year) {
   try {
     previousCommitteeContainer.innerHTML = '<p style="color:var(--muted)">Loading...</p>';
     let res = await fetch(await apiUrl(`/api/previous-committee/${encodeURIComponent(year)}`));
     if (!res.ok) {
-      // try fallback query endpoint
+      // Path route fail hole query fallback route try kora hoy.
       res = await fetch(await apiUrl(`/api/previous-committee-by-year?year=${encodeURIComponent(year)}`), { credentials: 'include' });
     }
     if (!res.ok) throw new Error('Failed to load archive');
@@ -102,10 +109,11 @@ async function loadArchive(year) {
   }
 }
 
+// Ei function archived member list role onujayi card grid e render kore.
 function renderArchive(members, year) {
   
 
-  // Build grouping first
+  // Prothome role/designation onujayi member group kora hoy.
   const grouped = new Map();
   (Array.isArray(members) ? members : []).forEach(m => {
     const role = m.role || 'Members';
@@ -113,7 +121,7 @@ function renderArchive(members, year) {
     grouped.get(role).push(m);
   });
 
-  // Clear container and insert a stable heading (with id for easier DOM inspection)
+  // Container clear kore selected year er heading add kora hoy.
   previousCommitteeContainer.innerHTML = '';
   const yearHeading = document.createElement('h3');
   yearHeading.id = 'archiveYearHeading';
@@ -123,7 +131,7 @@ function renderArchive(members, year) {
   yearHeading.textContent = year ? `The member for the year: ${year}` : 'The member for the year:';
   previousCommitteeContainer.appendChild(yearHeading);
 
-  // If no members, show a clear message so the heading isn't the only element
+  // Member na thakle clear empty message dekhano hoy.
   if (grouped.size === 0) {
     const msg = document.createElement('p');
     msg.style.textAlign = 'center';
@@ -165,7 +173,7 @@ function renderArchive(members, year) {
       card.appendChild(photo);
       card.appendChild(meta);
       grid.appendChild(card);
-      // process photo and initials
+      // Card er photo valid na hole initials fallback show kore.
       processCardPhotoPreviousCommittee(card, m);
     });
     g.appendChild(grid);
@@ -173,45 +181,46 @@ function renderArchive(members, year) {
   });
 }
 
-// init
+// Ei init block admin check kore year list load kore.
 (async () => {
   await checkAdminSession();
   await loadYears();
-  // if year present in query, auto-load it
+  // URL query te year thakle oi archive auto-load kora hoy.
   try {
     const params = new URLSearchParams(window.location.search);
     const qy = params.get('year');
     if (qy) await loadArchive(qy);
   } catch (err) {
-    // ignore
+    // Query parsing error hole page normal thakbe.
   }
 })();
 
-// Listen for archival events from other pages (storage event) to auto-load the new year
+// Onno tab/page theke archive signal ashle notun year auto-load hoy.
 window.addEventListener('storage', (e) => {
   try {
     if (e.key === 'newArchivedYear' && e.newValue) {
       loadYears().then(() => loadArchive(e.newValue));
-      // remove the flag so it's a one-time signal
+      // Signal ekbar use hoye gele remove kora hoy.
       localStorage.removeItem('newArchivedYear');
     }
   } catch (err) {
-    // ignore
+    // Storage error hole normal page flow cholbe.
   }
 });
 
-// Also check localStorage on load in case the flag was set in this tab
+// Same tab e archive signal thakle page load er somoy handle kora hoy.
 try {
   const pending = localStorage.getItem('newArchivedYear');
   if (pending) {
-    // clear and handle
+    // Signal clear kore relevant archive load kora hoy.
     localStorage.removeItem('newArchivedYear');
     (async () => { await loadYears(); await loadArchive(pending); })();
   }
 } catch (err) {
-  // ignore
+  // Storage access error hole ignore kora hoy.
 }
 
+// Ei function previous committee card er photo/initials process kore.
 function processCardPhotoPreviousCommittee(card, member) {
   try {
     const photoWrap = card.querySelector('.photo-wrap');

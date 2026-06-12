@@ -1,4 +1,4 @@
-// Committee member photo processing
+// Ei block initial committee card er photo load kore, photo na thakle initials show kore.
 document.addEventListener('DOMContentLoaded', () => {
   const cards = Array.from(document.querySelectorAll('.card'));
   cards.forEach(card => {
@@ -52,13 +52,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// Process a dynamically created card's photo and initials
+// Ei function dynamically created card er photo/initials process kore.
 function processCardPhoto(card, member) {
   try {
     const photoWrap = card.querySelector('.photo-wrap');
     if (!photoWrap) return;
 
-    // create initials element
+    // Initials element na thakle create kora hoy.
     let initialsEl = photoWrap.querySelector('.initials');
     if (!initialsEl) {
       initialsEl = document.createElement('div');
@@ -107,21 +107,24 @@ function processCardPhoto(card, member) {
   }
 }
 
-// ===== Committee Member API integration =====
+// Ei block committee page er API integration state ebong DOM reference rakhe.
 let addMemberForm, adminMemberPrompt, memberAdminUser, committeeContainer, archiveToPreviousCommitteeBtn;
 let isMemberAdminAuthenticated = false;
 
+// Ei function rendered text ke HTML injection theke safe kore.
 function escapeHtml(s) {
   if (!s) return '';
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[c]);
 }
 
+// Ei function API path ke current server origin er sathe full URL banay.
 function apiUrl(path) {
   if (!path) return '/';
   if (!path.startsWith('/')) path = '/' + path;
   return window.location.origin + path;
 }
 
+// Ei function committee page er DOM element gulo cache kore.
 function initializeUIElements() {
   addMemberForm = document.getElementById('addMemberForm');
   adminMemberPrompt = document.getElementById('adminMemberPrompt');
@@ -130,6 +133,7 @@ function initializeUIElements() {
   archiveToPreviousCommitteeBtn = document.getElementById('archiveToPreviousCommitteeBtn');
 }
 
+// Ei function database theke current committee member ene render kore.
 async function fetchAndRenderMembers() {
   try {
     const res = await fetch(apiUrl('/api/committee'), { credentials: 'include' });
@@ -141,6 +145,7 @@ async function fetchAndRenderMembers() {
   }
 }
 
+// Ei function role/designation onujayi committee member card render kore.
 function renderMembers(members) {
   if (!committeeContainer) return;
   
@@ -202,7 +207,7 @@ function renderMembers(members) {
       card.appendChild(photoWrap);
       card.appendChild(meta);
       grid.appendChild(card);
-      // process photo probing and initials for this dynamically created card
+      // Ei card er photo valid kina check kore initials/photo show kora hoy.
       processCardPhoto(card, m);
     });
 
@@ -227,6 +232,7 @@ function renderMembers(members) {
   }
 }
 
+// Ei function admin session check kore member add/archive UI show/hide kore.
 async function checkMemberAdmin() {
   try {
     const res = await fetch(apiUrl('/api/admin/session'), { credentials: 'include' });
@@ -252,7 +258,7 @@ async function checkMemberAdmin() {
   }
 }
 
-// Ready state check - script is at end of HTML
+// Ei block DOM ready hole UI reference, form handler, admin check initialize kore.
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     initializeUIElements();
@@ -267,7 +273,9 @@ if (document.readyState === 'loading') {
   setInterval(checkMemberAdmin, 60 * 1000);
 }
 
+// Ei function add member form ebong archive button er event handler set kore.
 function setupFormHandlers() {
+  // Ei block admin add-member form submit kore current committee te member save kore.
   if (addMemberForm) {
     addMemberForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -296,6 +304,7 @@ function setupFormHandlers() {
     });
   }
 
+  // Ei block current committee ke previous committee archive e move kore.
   if (archiveToPreviousCommitteeBtn) {
     archiveToPreviousCommitteeBtn.addEventListener('click', async (e) => {
       e.preventDefault();
@@ -335,11 +344,11 @@ function setupFormHandlers() {
         }
         const data = await res.json();
         alert(`Archived ${data.count || 0} members under ${data.year}`);
-        // Signal the previous committee page to load the new year when it is opened.
+        // Previous committee page khulle notun year auto-load korar signal save hoy.
         try {
           localStorage.setItem('newArchivedYear', data.year);
         } catch (err) {
-          // ignore storage errors
+          // Storage error hole archive successful thakbe, tai ignore kora hoy.
         }
       } catch (err) {
         alert('Error archiving committee: ' + err.message);

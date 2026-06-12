@@ -1,10 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
+  <!-- Ei block ASP.NET project er target framework ebong compiler setting rakhe. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
+
+  <!-- Ei block MySQL database connect korar NuGet package rakhe. -->
+  <ItemGroup>
+    <PackageReference Include="MySqlConnector" Version="2.4.0" />
+  </ItemGroup>
 
 </Project>

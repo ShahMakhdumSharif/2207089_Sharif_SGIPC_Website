@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "dIz6O37jQlA=",
+  "dgSpecHash": "9CtdjaHP9qM=",
   "success": true,
   "projectFilePath": "/Users/shah_makhdum/Desktop/2207089_Sharif_SGIPC_Website/server/EventsApi.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "/Users/shah_makhdum/.nuget/packages/mysqlconnector/2.4.0/mysqlconnector.2.4.0.nupkg.sha512"
+  ],
   "logs": []
 }

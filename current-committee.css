@@ -1,3 +1,4 @@
+/* Ei block committee page er local color variable define kore. */
 :root {
   --surface: #f9f2fd;
   --accent: #8b2ead;
@@ -6,6 +7,7 @@
   --stroke: #decaec;
 }
 
+/* Ei block committee page eo header sticky thaka ensure kore. */
 .site-header {
   position: sticky !important;
   position: -webkit-sticky !important;
@@ -13,12 +15,14 @@
   z-index: 1000 !important;
 }
 
+/* Ei block committee card grid layout set kore. */
 .cards {
   display:grid;
   gap:1rem;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
 }
 
+/* Ei block individual member card er base style set kore. */
 .card {
   background: linear-gradient(160deg,#ffffff 0%, var(--surface) 100%);
   border:1px solid var(--stroke);
@@ -31,6 +35,7 @@
   gap:0.6rem;
 }
 
+/* Ei block member photo square area ebong fallback initials style kore. */
 .photo-wrap {
   width:100%;
   aspect-ratio:1/1;
@@ -62,6 +67,7 @@
   background:linear-gradient(135deg,var(--accent-strong),var(--accent));
 }
 
+/* Ei block member text/meta data style kore. */
 .meta {
   padding:0 0.1rem;
   color:var(--muted);
@@ -82,6 +88,7 @@
   display: none;
 }
 
+/* Ei block role/designation group heading ebong grid layout style kore. */
 .designation {
   font-size:0.82rem;
   color:var(--accent-strong);
@@ -131,15 +138,18 @@
   flex:1 1 auto;
 }
 
+/* Ei block medium screen e designation grid adjust kore. */
 @media (max-width:900px) {
   .designation-grid{ grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 }
 
+/* Ei block small screen e member photo/card size adjust kore. */
 @media (max-width:600px) {
   .designation-grid{ grid-template-columns: 1fr; }
   .designation-grid .card .photo-wrap{ width:88px; height:88px; flex:0 0 88px; }
 }
 
+/* Ei block very small screen e committee cards single-column kore. */
 @media (max-width:480px) {
   .cards{ grid-template-columns: 1fr; gap:0.6rem; }
   .card{ padding:0.6rem; }
@@ -156,6 +166,7 @@
   }
 }
 
+/* Ei block keyboard focus hole card outline show kore. */
 .card:focus-within {
   outline:3px solid rgba(139,46,173,0.12);
   box-shadow:0 14px 28px rgba(98,28,126,0.08);

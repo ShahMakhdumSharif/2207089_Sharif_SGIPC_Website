@@ -17,9 +17,11 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <!-- Ei block background ambient decoration show kore. -->
     <div class="ambient ambient-one"></div>
     <div class="ambient ambient-two"></div>
 
+    <!-- Ei header block logo, nav menu, admin login link show kore. -->
     <header class="site-header">
       <a href="#home" class="brand">
         <img
@@ -54,6 +56,7 @@
     </header>
 
     <main>
+      <!-- Ei section home page er top banner slideshow show kore. -->
       <section class="front-banner" aria-label="SGIPC featured banner slideshow">
         <div class="front-banner-slider">
           <button
@@ -83,6 +86,7 @@
         </div>
       </section>
 
+      <!-- Ei section hero text, action button, ebong stats card show kore. -->
       <section class="hero" id="home">
         <h2>Build Skills. Solve Problems. Represent KUET.</h2>
         <p class="hero-copy">
@@ -120,6 +124,7 @@
         </div>
       </section>
 
+      <!-- Ei section SGIPC club er short intro show kore. -->
       <section class="section reveal" id="about">
         <p class="section-kicker">Who We Are</p>
         <h3>Competitive Programmers of KUET</h3>
@@ -131,6 +136,7 @@
         </p>
       </section>
 
+      <!-- Ei section club er regular activity card gulo show kore. -->
       <section class="section reveal" id="activities">
         <p class="section-kicker">What We Do</p>
         <h3>Weekly rhythm that keeps everyone improving</h3>
@@ -169,26 +175,21 @@
         </div>
       </section>
 
+      <!-- Ei section achievement archive page e jawar button show kore. -->
       <section class="section reveal" id="achievements">
         <p class="section-kicker">Achievements</p>
         <div class="achievement-jump">
-          <a class="achievement-jump-link" href="#icpc-achievements"
-            ><span class="achievement-jump-title">ICPC Achievements</span
+          <a class="achievement-jump-link" href="achievements.html"
+            ><span class="achievement-jump-title">Achievements</span
             ><span class="achievement-jump-desc"
               >Click to see SGIPC team successes in the recent
-              International Collegiate Programming Contest.</span
-            ></a
-          >
-          <a class="achievement-jump-link" href="#iupc-achievements"
-            ><span class="achievement-jump-title">IUPC Achievements</span
-            ><span class="achievement-jump-desc"
-              >Click to see SGIPC team successes in the recent
-              Inter-University Programming Contest in Bangladesh.</span
+              ICPC and IUPC.</span
             ></a
           >
         </div>
       </section>
 
+      <!-- Ei section upcoming/past event list ebong admin add form show kore. -->
       <section class="section reveal" id="events">
         <div class="event-groups">
           <article class="event-box">
@@ -197,7 +198,7 @@
               <p style="margin-bottom:0.5rem;">Logged in as: <strong id="eventAdminUser"></strong></p>
             </div>
             <div id="upcomingEvents" class="events-list">
-              <!-- Upcoming events will be rendered here by script.js -->
+              <!-- Upcoming event gulo script.js diye ekhane render hoy. -->
             </div>
             <form id="addEventForm" class="add-event-form" aria-label="Add upcoming event" style="display:none;">
               <h4 style="margin-bottom:0.5rem;">Add New Event</h4>
@@ -214,12 +215,13 @@
           <article class="event-box">
             <p class="section-kicker event-kicker">Past Events</p>
             <div id="pastEvents" class="events-list">
-              <!-- Past events will be rendered here by script.js -->
+              <!-- Past event gulo script.js diye ekhane render hoy. -->
             </div>
           </article>
         </div>
       </section>
 
+      <!-- Ei section join form ebong admin join request review area show kore. -->
       <section class="section reveal join" id="join">
         <p class="section-kicker">Join SGIPC</p>
         <h3>Start your problem-solving journey with us</h3>
@@ -316,6 +318,7 @@
 
     </main>
 
+    <!-- Ei footer block common navigation, address, social link show kore. -->
     <footer class="site-footer">
       <div class="footer-inner">
         <nav class="footer-nav" aria-label="Footer Navigation">
@@ -373,6 +376,7 @@
       </div>
     </footer>
 
+    <!-- Ei script home page er interaction, API load, admin state handle kore. -->
     <script src="script.js"></script>
   </body>
 </html>

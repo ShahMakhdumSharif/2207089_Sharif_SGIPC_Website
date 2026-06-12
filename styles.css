@@ -1,3 +1,4 @@
+/* Ei block global color, spacing, ebong layout variable define kore. */
 :root {
   --bg: #ffffff;
   --surface: #f9f2fd;
@@ -11,12 +12,14 @@
   --edge-gap: clamp(1rem, 2.2vw, 2rem);
 }
 
+/* Ei block default browser spacing reset kore. */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+/* Ei block global image/svg, html scroll, ebong body base style set kore. */
 img,
 svg {
   max-width: 100%;
@@ -28,6 +31,7 @@ html {
   font-size: clamp(15px, 0.16vw + 14.4px, 17px);
 }
 
+/* Ei block fixed header thakle anchor section e proper scroll offset dey. */
 #home,
 #about,
 #activities,
@@ -48,6 +52,7 @@ body {
   overflow-x: hidden;
 }
 
+/* Ei block background ambient decoration style kore. */
 .ambient {
   position: fixed;
   z-index: -1;
@@ -71,6 +76,7 @@ body {
   top: 35%;
 }
 
+/* Ei block sticky header, brand, navigation, ebong mobile menu style kore. */
 .site-header {
   width: 100%;
   margin-inline: 0;
@@ -92,6 +98,7 @@ main {
   margin-inline: auto;
 }
 
+/* Ei block front page banner slideshow style kore. */
 .front-banner {
   margin-top: 1rem;
   border-radius: 1.15rem;
@@ -267,11 +274,13 @@ main {
   background: var(--accent);
 }
 
+/* Ei block main content spacing set kore. */
 main {
   padding: clamp(1.25rem, 2.2vw, 2rem) 0 clamp(2.5rem, 5vw, 4rem);
   flex: 1 1 auto;
 }
 
+/* Ei block hero, button, ebong stats card area style kore. */
 .hero {
   padding: 3.2rem 0 2.6rem;
   animation: rise 0.8s ease;
@@ -327,6 +336,7 @@ main {
   margin-top: 2rem;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
   gap: 0.9rem;
 }
 
@@ -382,6 +392,7 @@ main {
   margin-top: 0.3rem;
 }
 
+/* Ei block common section/card layout style kore. */
 .section {
   margin-top: clamp(1.6rem, 4vw, 3rem);
   padding: clamp(0.95rem, 2.4vw, 1.2rem);
@@ -399,6 +410,10 @@ main {
   font-family: "IBM Plex Mono", monospace;
 }
 
+.admin-name-display {
+  text-transform: none;
+}
+
 .event-kicker {
   font-weight: 700;
 }
@@ -413,6 +428,7 @@ main {
   color: var(--muted);
 }
 
+/* Ei block activities ebong achievements section er card/grid style kore. */
 .activity-grid {
   margin-top: 1.1rem;
   display: grid;
@@ -442,6 +458,15 @@ main {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.85rem;
+}
+
+.achievement-jump:has(.achievement-jump-link:only-child) {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+}
+
+.achievement-jump:has(.achievement-jump-link:only-child) .achievement-jump-link {
+  width: min(100%, 520px);
 }
 
 .achievement-jump-link {
@@ -515,11 +540,38 @@ main {
   font-size: 1.02rem;
 }
 
+.achievement-logo-heading,
+.achievement-card-logo-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.achievement-logo {
+  width: 76px;
+  height: auto;
+  flex: 0 0 auto;
+  border: 1px solid var(--stroke);
+  border-radius: 0.65rem;
+  background: #ffffff;
+}
+
+.achievement-card-logo-heading {
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+}
+
+.achievement-card-logo-heading .achievement-logo {
+  width: 104px;
+}
+
 .achievement-card p {
   margin-top: 0.5rem;
   font-size: 0.95rem;
 }
 
+/* Ei block event list, join form, ebong join request admin area style kore. */
 .event-meta {
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.9rem;
@@ -696,6 +748,7 @@ main {
   color: var(--muted);
 }
 
+/* Ei block footer navigation, address, ebong social icon style kore. */
 .site-footer {
   margin-top: 2rem;
   padding: 1.2rem 0 1.8rem;
@@ -711,6 +764,7 @@ main {
   gap: 0.7rem;
 }
 
+/* Ei media block tablet width e header/join layout adjust kore. */
 @media (max-width: 1024px) {
   .site-header {
     align-items: flex-start;
@@ -725,6 +779,7 @@ main {
   }
 }
 
+/* Ei media block medium screen e logo/text size adjust kore. */
 @media (max-width: 840px) {
   .brand-logo {
     width: 72px;
@@ -853,6 +908,7 @@ main {
   font-size: 0.92rem;
 }
 
+/* Ei block scroll reveal animation er initial/final state set kore. */
 .reveal {
   opacity: 0;
   transform: translateY(14px);
@@ -866,7 +922,7 @@ main {
   transform: translateY(0);
 }
 
-/* Admin Login Modal */
+/* Ei block admin login modal style kore. */
 .login-modal {
   position: fixed !important;
   top: 0 !important;
@@ -923,7 +979,7 @@ main {
   cursor: pointer;
 }
 
-/* Add Event Form */
+/* Ei block admin add event/result/member form style kore. */
 .add-event-form {
   display: flex;
   flex-direction: column;
@@ -972,7 +1028,7 @@ main {
   margin: 0.5rem auto;
 }
 
-/* Delete button for events */
+/* Ei block admin delete button style kore. */
 .btn-delete {
   display: inline-block;
   margin-top: 0.5rem;
@@ -990,6 +1046,7 @@ main {
   background: #c82333;
 }
 
+/* Ei media block small modal width adjust kore. */
 @media (max-width: 700px) {
   .login-modal-content {
     width: 95%;
@@ -997,6 +1054,7 @@ main {
   }
 }
 
+/* Ei keyframe hero/reveal entry animation define kore. */
 @keyframes rise {
   from {
     opacity: 0;
@@ -1008,6 +1066,7 @@ main {
   }
 }
 
+/* Ei media block tablet/mobile grid column adjust kore. */
 @media (max-width: 880px) {
   .stats-grid,
   .activity-grid,
@@ -1024,6 +1083,7 @@ main {
   }
 }
 
+/* Ei media block mobile navigation ebong single-column layout set kore. */
 @media (max-width: 700px) {
   .menu-btn {
     display: block;
@@ -1065,6 +1125,7 @@ main {
   }
 }
 
+/* Ei media block very small screen e brand/action spacing adjust kore. */
 @media (max-width: 520px) {
   .brand {
     gap: 0.55rem;
@@ -1094,6 +1155,7 @@ main {
   }
 }
 
+/* Ei media block large desktop e content max width baray. */
 @media (min-width: 1600px) {
   :root {
     --max-width: 1320px;

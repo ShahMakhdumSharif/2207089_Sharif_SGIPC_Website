@@ -1,4 +1,3 @@
-/Users/shah_makhdum/Desktop/2207089_Sharif_SGIPC_Website/server/bin/Debug/net10.0/data/events.json
 /Users/shah_makhdum/Desktop/2207089_Sharif_SGIPC_Website/server/bin/Debug/net10.0/EventsApi.staticwebassets.endpoints.json
 /Users/shah_makhdum/Desktop/2207089_Sharif_SGIPC_Website/server/bin/Debug/net10.0/EventsApi
 /Users/shah_makhdum/Desktop/2207089_Sharif_SGIPC_Website/server/bin/Debug/net10.0/EventsApi.deps.json
@@ -26,5 +25,6 @@
 /Users/shah_makhdum/Desktop/2207089_Sharif_SGIPC_Website/server/obj/Debug/net10.0/EventsApi.pdb
 /Users/shah_makhdum/Desktop/2207089_Sharif_SGIPC_Website/server/obj/Debug/net10.0/EventsApi.genruntimeconfig.cache
 /Users/shah_makhdum/Desktop/2207089_Sharif_SGIPC_Website/server/obj/Debug/net10.0/ref/EventsApi.dll
-/Users/shah_makhdum/Desktop/2207089_Sharif_SGIPC_Website/server/bin/Debug/net10.0/data/current-committee.json
-/Users/shah_makhdum/Desktop/2207089_Sharif_SGIPC_Website/server/bin/Debug/net10.0/data/alumni.json
+/Users/shah_makhdum/Desktop/2207089_Sharif_SGIPC_Website/server/bin/Debug/net10.0/MySqlConnector.dll
+/Users/shah_makhdum/Desktop/2207089_Sharif_SGIPC_Website/server/obj/Debug/net10.0/EventsApi.csproj.AssemblyReference.cache
+/Users/shah_makhdum/Desktop/2207089_Sharif_SGIPC_Website/server/obj/Debug/net10.0/EventsApi.csproj.Up2Date

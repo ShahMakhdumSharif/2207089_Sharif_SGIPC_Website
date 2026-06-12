@@ -12,9 +12,11 @@
   </head>
 
   <body>
+    <!-- Ei block background ambient decoration show kore. -->
     <div class="ambient ambient-one"></div>
     <div class="ambient ambient-two"></div>
 
+    <!-- Ei header block logo ebong same site navigation show kore. -->
     <header class="site-header">
   <a href="index.html" class="brand">
         <img src="assets/sgipc-logo.png" alt="SGIPC logo" class="brand-logo" width="88" height="88" />
@@ -41,6 +43,7 @@
     </header>
 
     <main>
+      <!-- Ei block admin-only add member form ebong archive button show kore. -->
       <div style="padding: 0 0 1rem; margin-bottom: 1rem;">
         <div id="adminMemberPrompt" style="display:none;background:var(--surface-soft);padding:1rem;border-radius:4px;text-align:center;margin-bottom:1rem;">
           <p style="margin-bottom:0.5rem;">Logged in as: <strong id="memberAdminUser"></strong></p>
@@ -61,10 +64,12 @@
             <button class="btn btn-ghost" id="archiveToPreviousCommitteeBtn" style="display:none;">Add Committee to Previous Committee</button>
           </div>
       </div>
+      <!-- Ei section current committee member card gulo JavaScript diye render kore. -->
       <section class="cards" id="committeeContainer" aria-label="Committee members">
-        <!-- Committee members will be rendered here by JavaScript -->
+        <!-- Committee member gulo JavaScript diye ekhane render hoy. -->
       </section>
     </main>
+    <!-- Ei footer block common navigation, address, social link show kore. -->
     <footer class="site-footer">
       <div class="footer-inner">
         <nav class="footer-nav" aria-label="Footer Navigation">
@@ -122,6 +127,7 @@
       </div>
     </footer>
 
+    <!-- Ei script shared nav/admin behavior ebong committee CRUD UI handle kore. -->
     <script src="script.js?v=20260507c"></script>
     <script src="current-committee.js?v=20260507c"></script>
   </body>
